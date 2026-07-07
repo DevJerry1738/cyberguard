@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Shield, Twitter, Github, Linkedin } from "lucide-react";
 
 const footerLinks = {
@@ -35,6 +38,21 @@ const socials = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on app/auth/onboarding routes
+  const hideFooter =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/verify-email") ||
+    pathname.startsWith("/verify-success");
+
+  if (hideFooter) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-surface-800/60 bg-surface-950" role="contentinfo">
       {/* Main footer grid */}

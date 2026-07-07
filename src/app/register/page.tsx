@@ -25,14 +25,14 @@ export default function RegisterPage() {
         <div className="absolute inset-0 grid-bg" aria-hidden />
         <div className="absolute inset-0 bg-hero-gradient" aria-hidden />
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2.5 mb-12 w-fit" aria-label="CyberGuard Home">
+          {/* <Link href="/" className="flex items-center gap-2.5 mb-12 w-fit" aria-label="CyberGuard Home">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500">
               <Shield className="h-4 w-4 text-white" aria-hidden />
             </div>
             <span className="font-display text-lg font-bold text-white">
               Cyber<span className="text-brand-400">Guard</span>
             </span>
-          </Link>
+          </Link> */}
 
           <h2 className="font-display text-3xl font-bold text-white mb-4 leading-tight">
             Your security journey starts here

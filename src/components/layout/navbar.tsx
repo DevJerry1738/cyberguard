@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +20,27 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+
+  // Hide navbar on app/auth/onboarding routes
+  const hideNavbar =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/departments") ||
+    pathname.startsWith("/members") ||
+    pathname.startsWith("/organization") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/assessments") ||
+    pathname.startsWith("/reports") ||
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/verify-email") ||
+    pathname.startsWith("/invitations") ||
+    pathname.startsWith("/accept-invite") ||
+    pathname.startsWith("/verify-success");
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -31,7 +51,11 @@ export function Navbar() {
   // Close mobile menu on route change
   React.useEffect(() => {
     setOpen(false);
-  }, []);
+  }, [pathname]);
+
+  if (hideNavbar) {
+    return null;
+  }
 
   return (
     <header

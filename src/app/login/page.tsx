@@ -16,14 +16,14 @@ export default function LoginPage() {
       {/* Left panel — form */}
       <div className="flex flex-1 flex-col justify-center px-6 py-20 sm:px-10 lg:max-w-lg xl:max-w-xl">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 mb-10 w-fit" aria-label="CyberGuard Home">
+        {/* <Link href="/" className="flex items-center gap-2.5 mb-10 w-fit" aria-label="CyberGuard Home">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 shadow-glow-sm">
             <Shield className="h-4 w-4 text-white" aria-hidden />
           </div>
           <span className="font-display text-lg font-bold text-white">
             Cyber<span className="text-brand-400">Guard</span>
           </span>
-        </Link>
+        </Link> */}
 
         <div className="max-w-sm">
           <h1 className="font-display text-3xl font-bold text-white mb-2">Welcome back</h1>

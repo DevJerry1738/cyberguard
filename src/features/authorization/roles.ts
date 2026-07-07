@@ -1,0 +1,63 @@
+import { PERMISSIONS, type Permission } from './permissions';
+
+export const ROLES = {
+  OWNER: 'Owner',
+  ADMIN: 'Admin',
+  SECURITY_OFFICER: 'Security Officer',
+  MANAGER: 'Manager',
+  EMPLOYEE: 'Employee',
+} as const;
+
+export type RoleName = typeof ROLES[keyof typeof ROLES];
+
+// Central role -> permissions map. Keep in code for now; can be migrated to DB later.
+export const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
+  [ROLES.OWNER]: Object.values(PERMISSIONS),
+
+  [ROLES.ADMIN]: [
+    PERMISSIONS.ORGANIZATION_VIEW,
+    PERMISSIONS.ORGANIZATION_UPDATE,
+    PERMISSIONS.MEMBERS_VIEW,
+    PERMISSIONS.MEMBERS_INVITE,
+    PERMISSIONS.MEMBERS_UPDATE,
+    PERMISSIONS.MEMBERS_REMOVE,
+    PERMISSIONS.DEPARTMENTS_VIEW,
+    PERMISSIONS.DEPARTMENTS_CREATE,
+    PERMISSIONS.DEPARTMENTS_UPDATE,
+    PERMISSIONS.SECURITY_DOMAINS_VIEW,
+    PERMISSIONS.SECURITY_DOMAINS_CREATE,
+    PERMISSIONS.SECURITY_DOMAINS_UPDATE,
+    PERMISSIONS.SECURITY_DOMAINS_ARCHIVE,
+    PERMISSIONS.SECURITY_DOMAINS_REORDER,
+    PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.SETTINGS_VIEW,
+  ],
+
+  [ROLES.SECURITY_OFFICER]: [
+    PERMISSIONS.SECURITY_DOMAINS_VIEW,
+    PERMISSIONS.SECURITY_DOMAINS_REORDER,
+    PERMISSIONS.ASSESSMENTS_VIEW,
+    PERMISSIONS.ASSESSMENTS_CREATE,
+    PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.AUDIT_VIEW,
+  ],
+
+  [ROLES.MANAGER]: [
+    PERMISSIONS.DEPARTMENTS_VIEW,
+    PERMISSIONS.DEPARTMENTS_CREATE,
+    PERMISSIONS.DEPARTMENTS_UPDATE,
+    PERMISSIONS.SECURITY_DOMAINS_VIEW,
+    PERMISSIONS.REPORTS_VIEW,
+  ],
+
+  [ROLES.EMPLOYEE]: [
+    PERMISSIONS.ASSESSMENTS_VIEW,
+  ],
+};
+
+export function roleHasPermission(role: string | null | undefined, permission: Permission): boolean {
+  if (!role) return false;
+  const perms = (ROLE_PERMISSIONS as any)[role as RoleName] as Permission[] | undefined;
+  if (!perms) return false;
+  return perms.includes(permission);
+}
