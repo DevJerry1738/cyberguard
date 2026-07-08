@@ -62,6 +62,8 @@ export const metadata: Metadata = {
   description: 'CyberGuard compliance and security risk management platform.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
