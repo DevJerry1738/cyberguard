@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Twitter, Github, Linkedin } from "lucide-react";
+import { Shield, Globe, Mail } from "lucide-react";
 
 const footerLinks = {
   Product: [
@@ -32,9 +32,9 @@ const footerLinks = {
 };
 
 const socials = [
-  { label: "Twitter / X",  href: "#", Icon: Twitter },
-  { label: "GitHub",       href: "#", Icon: Github },
-  { label: "LinkedIn",     href: "#", Icon: Linkedin },
+  { label: "Website", href: "#", Icon: Globe },
+  { label: "Email", href: "#", Icon: Mail },
+  { label: "Support", href: "#", Icon: Shield },
 ];
 
 export function Footer() {
