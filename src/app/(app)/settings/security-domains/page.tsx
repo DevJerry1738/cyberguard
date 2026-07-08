@@ -7,6 +7,7 @@ import { Shield } from 'lucide-react';
 import CreateDomainModal from '@/features/security-domains/components/CreateDomainModal';
 import { SecurityDomainsList } from '@/features/security-domains/components/SecurityDomainsList';
 import { PERMISSIONS } from '@/features/authorization/permissions';
+import { roleHasPermission } from '@/features/authorization/roles';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -54,6 +55,9 @@ export default async function SecurityDomainsPage() {
     redirect('/403');
   }
 
+  // Check if user can create domains
+  const canCreate = roleHasPermission(userRole, PERMISSIONS.SECURITY_DOMAINS_CREATE);
+
   // Fetch all non-deleted domains
   const domains = await getSecurityDomains(true);
 
@@ -63,7 +67,7 @@ export default async function SecurityDomainsPage() {
         title="Security Domains"
         description="Organize assessment questions into reusable cybersecurity domains shared across assessment templates."
       >
-        <CreateDomainModal />
+        {canCreate && <CreateDomainModal />}
       </PageHeader>
 
       {domains.length === 0 ? (
@@ -72,7 +76,7 @@ export default async function SecurityDomainsPage() {
           title="No security domains yet"
           description="Create your first security domain to start organizing assessment questions."
         >
-          <CreateDomainModal variant="cta" />
+          {canCreate && <CreateDomainModal variant="cta" />}
         </EmptyState>
       ) : (
         <div className="mt-8">

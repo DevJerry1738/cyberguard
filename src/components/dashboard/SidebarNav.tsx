@@ -29,9 +29,9 @@ const NAV_ITEMS: {
   { href: '/members', label: 'Team', icon: Users, permission: PERMISSIONS.MEMBERS_VIEW },
   { href: '/invitations', label: 'Invitations', icon: UserPlus, permission: PERMISSIONS.MEMBERS_INVITE },
   { href: '/organization', label: 'Organization', icon: ClipboardList, permission: PERMISSIONS.ORGANIZATION_VIEW },
+  { href: '/settings/security-domains', label: 'Security Domains', icon: Shield, permission: PERMISSIONS.SECURITY_DOMAINS_VIEW },
   { href: '/assessments', label: 'Assessments', icon: AlertTriangle, permission: PERMISSIONS.ASSESSMENTS_VIEW },
   { href: '/reports', label: 'Reports', icon: FileText, permission: PERMISSIONS.REPORTS_VIEW },
-  { href: '/settings/security-domains', label: 'Security Domains', icon: Shield, permission: PERMISSIONS.SECURITY_DOMAINS_VIEW },
   { href: '/settings', label: 'Settings', icon: Settings, permission: PERMISSIONS.SETTINGS_VIEW },
 ];
 
@@ -46,13 +46,26 @@ export function SidebarNav({ role }: SidebarNavProps) {
     return item.permission ? roleHasPermission(role, item.permission) : true;
   });
 
+  // Find the longest matching href (for nested routes like /settings/security-domains)
+  const getActiveHref = () => {
+    let activeHref = '';
+    for (const item of navItems) {
+      if (
+        (pathname === item.href || pathname.startsWith(item.href + '/')) &&
+        item.href.length > activeHref.length
+      ) {
+        activeHref = item.href;
+      }
+    }
+    return activeHref;
+  };
+
+  const activeHref = getActiveHref();
+
   return (
     <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Main navigation">
       {navItems.map(({ href, label, icon: Icon }) => {
-        const isActive =
-          href === '/dashboard'
-            ? pathname === '/dashboard'
-            : pathname.startsWith(href);
+        const isActive = href === activeHref;
 
         return (
           <Link

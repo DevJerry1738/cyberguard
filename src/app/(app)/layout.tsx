@@ -9,6 +9,54 @@ import { UserDropdown } from '@/components/dashboard/UserDropdown';
 import { signOutAction } from '@/features/auth/actions/auth';
 import { LogOut } from 'lucide-react';
 
+const shellDataCache = new Map<string, { expiresAt: number; value: any }>();
+
+async function getAppShellData(userId: string) {
+  const now = Date.now();
+  const cached = shellDataCache.get(userId);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email, organization_id')
+    .eq('id', userId)
+    .single();
+
+  const [orgResult, membershipResult] = await Promise.all([
+    profile?.organization_id
+      ? supabase.from('organizations').select('name').eq('id', profile.organization_id).single()
+      : Promise.resolve({ data: null }),
+    profile?.organization_id
+      ? supabase
+          .from('organization_members')
+          .select('roles(name)')
+          .eq('profile_id', userId)
+          .eq('organization_id', profile.organization_id)
+          .single()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  let userRole = 'Member';
+  if (membershipResult.data?.roles && typeof membershipResult.data.roles === 'object' && 'name' in membershipResult.data.roles) {
+    userRole = membershipResult.data.roles.name as string;
+  }
+
+  const value = {
+    firstName: profile?.first_name ?? '',
+    lastName: profile?.last_name ?? '',
+    email: profile?.email ?? '',
+    orgName: orgResult.data?.name ?? 'Your Organization',
+    userRole,
+  };
+
+  shellDataCache.set(userId, { expiresAt: now + 5 * 60 * 1000, value });
+  return value;
+}
+
 export const metadata: Metadata = {
   title: { default: 'Dashboard', template: '%s | CyberGuard' },
   description: 'CyberGuard compliance and security risk management platform.',
@@ -20,38 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login');
 
-  // Fetch profile + role for the shell
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, last_name, email, organization_id')
-    .eq('id', user.id)
-    .single();
-
-  const { data: org } = profile?.organization_id
-    ? await supabase
-        .from('organizations')
-        .select('name')
-        .eq('id', profile.organization_id)
-        .single()
-    : { data: null };
-
-  let userRole = 'Member';
-  if (profile?.organization_id) {
-    const { data: membership } = await supabase
-      .from('organization_members')
-      .select('roles(name)')
-      .eq('profile_id', user.id)
-      .eq('organization_id', profile.organization_id)
-      .single();
-    if (membership?.roles && typeof membership.roles === 'object' && 'name' in membership.roles) {
-      userRole = membership.roles.name as string;
-    }
-  }
-
-  const firstName = profile?.first_name ?? '';
-  const lastName = profile?.last_name ?? '';
-  const email = profile?.email ?? user.email ?? '';
-  const orgName = org?.name ?? 'Your Organization';
+  const { firstName, lastName, email, orgName, userRole } = await getAppShellData(user.id);
 
   return (
     <div className="flex min-h-screen bg-surface-950">

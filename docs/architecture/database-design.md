@@ -28,8 +28,8 @@ erDiagram
     roles ||--o{ permissions : "grants"
 
     departments ||--o{ department_members : "groups"
-
-    assessment_templates ||--o{ questions : "defines"
+    security_domains ||--o{ assessment_template_domains : "mapped_in"
+    assessment_templates ||--o{ assessment_template_domains : "associates"
     assessment_templates ||--o{ assessment_sessions : "instantiates"
 
     questions ||--o{ responses : "evaluates"
@@ -103,17 +103,41 @@ erDiagram
 - **Purpose**: Categorization of controls (e.g. Identity Management, Networking).
 - **Columns**:
   - `id` (uuid, PK)
+  - `organization_id` (uuid, FK -> `organizations.id`, Cascade)
   - `name` (text, Not Null)
-  - `code` (text, Unique, Not Null) - e.g., 'IAM', 'NET', 'OPS'.
+  - `description` (text, Nullable)
+  - `sort_order` (integer, Not Null, Default 0)
+  - `is_archived` (boolean, Not Null, Default false)
 
 ### 2.9. `assessment_templates`
-- **Purpose**: Compliance framework schemas (e.g. SOC 2).
+- **Purpose**: Version-controlled compliance framework schemas (e.g. ISO 27001).
 - **Columns**:
-  - `id` (uuid, PK)
-  - `title` (text, Not Null)
-  - `version` (text, Not Null)
+  - `id` (uuid, PK): Auto-generated unique identifier.
+  - `organization_id` (uuid, FK -> `organizations.id`, Cascade)
+  - `name` (text, Not Null): Template title.
+  - `description` (text, Nullable): Template description.
+  - `framework` (text, Not Null): Framework name.
+  - `version` (text, Not Null): Semantic version string (e.g. 1.0.0).
+  - `status` (text, Not Null): Status of template (Draft, Active, Archived).
+  - `parent_template_id` (uuid, FK -> `assessment_templates.id`, Nullable): Reference to previous template.
+  - `root_template_id` (uuid, FK -> `assessment_templates.id`, Nullable): Root template ancestor representing the template family.
+  - `created_by` (uuid, FK -> `profiles.id`)
+  - `updated_by` (uuid, FK -> `profiles.id`)
+  - `archived_at` (timestamptz, Nullable)
+  - `archived_by` (uuid, FK -> `profiles.id`, Nullable)
+  - `created_at` (timestamptz)
+  - `updated_at` (timestamptz)
+  - `deleted_at` (timestamptz, Nullable)
+  - `deleted_by` (uuid, FK -> `profiles.id`, Nullable)
 
-### 2.10. `questions`
+### 2.10. `assessment_template_domains`
+- **Purpose**: Many-to-many relationship mapping templates to domains.
+- **Columns**:
+  - `template_id` (uuid, PK, FK -> `assessment_templates.id`, Cascade)
+  - `domain_id` (uuid, PK, FK -> `security_domains.id`, Cascade)
+  - `sort_order` (integer, Not Null, Default 0)
+
+### 2.11. `questions`
 - **Purpose**: Audit questions linked to security domains.
 - **Columns**:
   - `id` (uuid, PK)

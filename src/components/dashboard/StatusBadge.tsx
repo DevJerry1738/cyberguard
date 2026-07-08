@@ -21,6 +21,9 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     case 'revoked':
       classes += 'bg-zinc-500/10 text-zinc-400 ring-1 ring-inset ring-zinc-500/20';
       break;
+    case 'draft':
+      classes += 'bg-zinc-500/10 text-zinc-400 ring-1 ring-inset ring-zinc-500/25 border border-zinc-800';
+      break;
     case 'expired':
       classes += 'bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20';
       break;
