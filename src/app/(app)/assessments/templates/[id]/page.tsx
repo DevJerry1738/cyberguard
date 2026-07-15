@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { getAssessmentTemplate } from '@/features/assessments/actions/templates';
 import { getSecurityDomains } from '@/features/security-domains/actions/security-domains';
+import { getTemplateQuestions } from '@/features/assessments/actions/questions';
 import { TemplateDetailView } from '@/features/assessments/components/TemplateDetailView';
 
 export const metadata: Metadata = {
@@ -60,6 +61,9 @@ export default async function TemplateDetailPage({ params }: TemplateDetailPageP
   // Fetch all active domains so that draft templates can select them
   const allAvailableDomains = await getSecurityDomains(false);
 
+  // Fetch template questions
+  const questions = await getTemplateQuestions(id);
+
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full space-y-6">
       <PageHeader
@@ -72,6 +76,7 @@ export default async function TemplateDetailPage({ params }: TemplateDetailPageP
         allAvailableDomains={allAvailableDomains}
         history={data.history}
         userRole={userRole}
+        questions={questions}
       />
     </div>
   );

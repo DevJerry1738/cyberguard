@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/dashboard/PageHeader';
-import { EmptyState } from '@/components/dashboard/EmptyState';
-import { ClipboardList } from 'lucide-react';
+import { listAssessmentSessions } from '@/features/assessments/actions/sessions';
+import { AssessmentsDashboard } from '@/features/assessments/components/AssessmentsDashboard';
 
 export const metadata: Metadata = {
   title: 'Assessments',
@@ -13,7 +13,9 @@ export const metadata: Metadata = {
 
 export default async function AssessmentsPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const { data: profile } = await supabase
@@ -26,7 +28,6 @@ export default async function AssessmentsPage() {
     redirect('/onboarding');
   }
 
-  // Fetch user role to determine template blueprint tab visibility
   const { data: membership } = await supabase
     .from('organization_members')
     .select('roles(name)')
@@ -36,6 +37,7 @@ export default async function AssessmentsPage() {
 
   const userRole = (membership?.roles as any)?.name || 'Employee';
   const showTemplatesTab = userRole !== 'Employee';
+  const sessions = await listAssessmentSessions();
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full space-y-6">
@@ -44,7 +46,6 @@ export default async function AssessmentsPage() {
         description="Run compliance and security assessments across your organization."
       />
 
-      {/* Tabs Menu */}
       <div className="border-b border-surface-850 flex gap-6 text-sm font-medium pb-px">
         <Link
           href="/assessments"
@@ -62,11 +63,7 @@ export default async function AssessmentsPage() {
         )}
       </div>
 
-      <EmptyState
-        icon={ClipboardList}
-        title="Assessments coming soon"
-        description="In the next sprint, you'll be able to run GDPR, ISO 27001, and custom compliance assessments across your departments using your published templates."
-      />
+      <AssessmentsDashboard initialSessions={sessions} userRole={userRole} />
     </div>
   );
 }

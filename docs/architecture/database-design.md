@@ -224,3 +224,44 @@ erDiagram
   - `role_id` (uuid, FK -> `roles.id`)
   - `token` (text, Unique, Not Null)
   - `expires_at` (timestamptz, Not Null)
+
+### 2.19. `assessment_questions`
+- **Purpose**: Form design questions assigned to templates and security domains.
+- **Columns**:
+  - `id` (uuid, PK)
+  - `organization_id` (uuid, FK -> `organizations.id`, Cascade)
+  - `template_id` (uuid, FK -> `assessment_templates.id`, Cascade)
+  - `domain_id` (uuid, FK -> `security_domains.id`, Restrict)
+  - `question_text` (text, Not Null)
+  - `help_text` (text)
+  - `question_type` (text, Not Null) - `yes_no`, `multiple_choice`, `checkbox`, `text`, `textarea`, `number`, `date`, `file_upload`
+  - `is_required` (boolean, Not Null)
+  - `weight` (int, 1-10)
+  - `sort_order` (int)
+  - `metadata` (jsonb)
+  - `created_by` (uuid)
+  - `updated_by` (uuid)
+  - `created_at` (timestamptz)
+  - `updated_at` (timestamptz)
+  - `deleted_at` (timestamptz)
+  - `deleted_by` (uuid)
+
+### 2.20. `assessment_question_options`
+- **Purpose**: Multiple choice or checkbox answer options for questions.
+- **Columns**:
+  - `id` (uuid, PK)
+  - `question_id` (uuid, FK -> `assessment_questions.id`, Cascade)
+  - `label` (text, Not Null)
+  - `value` (text, Not Null)
+  - `sort_order` (int)
+  - `created_at` (timestamptz)
+
+### 2.21. `question_conditions`
+- **Purpose**: Future placeholder table for conditional workflow rules.
+- **Columns**:
+  - `id` (uuid, PK)
+  - `question_id` (uuid, FK -> `assessment_questions.id`, Cascade)
+  - `depends_on_id` (uuid, FK -> `assessment_questions.id`, Cascade)
+  - `condition_operator` (text)
+  - `condition_value` (text)
+  - `created_at` (timestamptz)
