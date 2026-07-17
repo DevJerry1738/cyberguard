@@ -59,6 +59,37 @@ async function getAssignment(
   return assignment;
 }
 
+async function canAccessSession(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  organizationId: string,
+  sessionId: string
+): Promise<boolean> {
+  const assignment = await getAssignment(supabase, sessionId, userId, organizationId);
+  if (assignment) return true;
+
+  const { data: session } = await supabase
+    .from('assessment_sessions')
+    .select('started_by')
+    .eq('id', sessionId)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+
+  if (session?.started_by === userId) return true;
+
+  const { data, error } = await supabase
+    .from('organization_members')
+    .select('roles(name)')
+    .eq('profile_id', userId)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+
+  if (error) return false;
+
+  const roleName = data?.roles && typeof data.roles === 'object' && 'name' in data.roles ? (data.roles as { name?: string }).name : 'Employee';
+  return ['Owner', 'Admin', 'Security Officer'].includes(roleName ?? 'Employee');
+}
+
 function normalizeOptions(options: unknown): QuestionOption[] {
   if (!Array.isArray(options)) return [];
   return [...options]
@@ -131,8 +162,8 @@ export async function getAssessmentRuntime(sessionId: string): Promise<Assessmen
 
   if (sessionError || !session) return null;
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return null;
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return null;
 
   let snapshot = normalizeSnapshot((session.template_snapshot as Record<string, unknown>) ?? null);
 
@@ -211,8 +242,8 @@ export async function getAssessmentResponses(sessionId: string): Promise<Record<
   const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return {};
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return {};
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return {};
 
   const { data: session } = await supabase
     .from('assessment_sessions')
@@ -253,8 +284,8 @@ export async function saveAssessmentResponse(
   const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return { success: false, error: 'No organization found' };
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return { success: false, error: 'You are not assigned to this session' };
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return { success: false, error: 'You are not assigned to this session' };
 
   const { data: session } = await supabase
     .from('assessment_sessions')
@@ -341,8 +372,8 @@ export async function saveDraft(
   const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return { success: false, error: 'No organization found' };
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return { success: false, error: 'You are not assigned to this session' };
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return { success: false, error: 'You are not assigned to this session' };
 
   const { data: session } = await supabase
     .from('assessment_sessions')
@@ -431,8 +462,8 @@ export async function resumeAssessment(
   const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return { success: false, error: 'No organization found' };
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return { success: false, error: 'You are not assigned to this session' };
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return { success: false, error: 'You are not assigned to this session' };
 
   const { error } = await supabase
     .from('assessment_sessions')
@@ -463,8 +494,8 @@ export async function submitAssessment(
   const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return { success: false, error: 'No organization found' };
 
-  const assignment = await getAssignment(supabase, sessionId, user.id, organizationId);
-  if (!assignment) return { success: false, error: 'You are not assigned to this session' };
+  const hasAccess = await canAccessSession(supabase, user.id, organizationId, sessionId);
+  if (!hasAccess) return { success: false, error: 'You are not assigned to this session' };
 
   const validation = await validateAssessment(sessionId, responses);
   if (!validation.success) {

@@ -229,6 +229,17 @@ export async function createAssessmentSession(
     return { success: false, error: error.message };
   }
 
+  await supabase.from('assessment_session_assignments').upsert(
+    {
+      organization_id: organizationId,
+      session_id: session.id,
+      profile_id: user.id,
+      assigned_by: user.id,
+      status: 'Assigned',
+    },
+    { onConflict: 'session_id,profile_id' }
+  );
+
   await supabase.from('audit_logs').insert({
     organization_id: organizationId,
     profile_id: user.id,
