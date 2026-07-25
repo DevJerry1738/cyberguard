@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/dashboard/StatusBadge';
 import { getAssessmentSession } from '@/features/assessments/actions/sessions';
 import { getMembers } from '@/features/organizations/actions/data';
 import { AssignUsersDialog } from '@/features/assessments/components/AssignUsersDialog';
+import { ArchiveSessionDialog } from '@/features/assessments/components/ArchiveSessionDialog';
 
 export const metadata: Metadata = {
   title: 'Assessment Session',
@@ -52,6 +53,22 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
       >
         <div className="flex flex-wrap items-center gap-2">
           {canManage && <AssignUsersDialog sessionId={session.id} members={members} />}
+          {canManage && (
+            <div className="flex items-center gap-2">
+              <ArchiveSessionDialog
+                sessionId={session.id}
+                sessionName={session.template_name}
+                isArchived={session.status === 'Archived'}
+              />
+              <
+              // @ts-ignore-next-line server-component
+              >
+                {/* Delete button handled in client dialog component */}
+              </
+              >
+              <DeleteSessionDialog sessionId={session.id} sessionName={session.template_name} />
+            </div>
+          )}
           <Link
             href={`/assessments/sessions/${session.id}/wizard`}
             className="inline-flex items-center rounded-xl border border-surface-700 bg-surface-900 px-3 py-2 text-sm font-medium text-slate-200 hover:border-brand-500 hover:text-white transition-colors"

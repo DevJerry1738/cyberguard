@@ -10,6 +10,7 @@ interface QuestionNavigationProps {
   onReview: () => void;
   onSubmit: () => void;
   isPending: boolean;
+  showReview: boolean;
 }
 
 export function QuestionNavigation({
@@ -22,6 +23,7 @@ export function QuestionNavigation({
   onReview,
   onSubmit,
   isPending,
+  showReview,
 }: QuestionNavigationProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -51,9 +53,9 @@ export function QuestionNavigation({
       <button
         type="button"
         onClick={onReview}
-        className="rounded-lg border border-surface-700 bg-surface-950/40 px-3 py-2 text-sm text-white"
+        className="rounded-lg border border-surface-700 bg-surface-950/40 px-3 py-2 text-sm text-white hover:border-brand-500 transition-colors"
       >
-        Review
+        {showReview ? 'Hide Review' : 'Review'}
       </button>
       <button
         type="button"

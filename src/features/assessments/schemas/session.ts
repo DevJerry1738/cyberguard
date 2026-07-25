@@ -36,6 +36,7 @@ export interface AssessmentSession {
   template_snapshot: Record<string, unknown>;
   status: 'Draft' | 'In Progress' | 'Completed' | 'Cancelled' | 'Archived';
   progress_percent: number;
+  metadata: Record<string, unknown>;
   started_by: string | null;
   started_at: string | null;
   completed_at: string | null;

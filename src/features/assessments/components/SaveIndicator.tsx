@@ -1,25 +1,91 @@
 'use client';
 
+import React from 'react';
+import { useDraft } from './DraftProvider';
+import { CheckCircle2, Loader2, CloudOff, AlertTriangle, RefreshCw, AlertCircle } from 'lucide-react';
+import { SaveStatus } from '../schemas/draft';
+
 interface SaveIndicatorProps {
-  status: 'saved' | 'saving' | 'unsaved' | 'error';
+  className?: string;
 }
 
-const STATUS_COPY: Record<SaveIndicatorProps['status'], string> = {
-  saved: 'Saved',
-  saving: 'Saving…',
-  unsaved: 'Unsaved changes',
-  error: 'Save error',
-};
+export function SaveIndicator({ className = '' }: SaveIndicatorProps) {
+  const { saveStatus, lastSavedAt } = useDraft();
 
-export function SaveIndicator({ status }: SaveIndicatorProps) {
+  function getStatusConfig(status: SaveStatus) {
+    switch (status) {
+      case 'saved':
+        return {
+          icon: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
+          label: 'Saved',
+          dotBg: 'bg-emerald-500',
+          textColor: 'text-slate-300',
+        };
+      case 'saving':
+        return {
+          icon: <Loader2 className="w-4 h-4 text-sky-400 animate-spin" />,
+          label: 'Saving...',
+          dotBg: 'bg-sky-400',
+          textColor: 'text-slate-300',
+        };
+      case 'unsaved':
+        return {
+          icon: <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />,
+          label: 'Unsaved Changes',
+          dotBg: 'bg-amber-400',
+          textColor: 'text-amber-200',
+        };
+      case 'sync_pending':
+        return {
+          icon: <RefreshCw className="w-4 h-4 text-blue-400 animate-spin" />,
+          label: 'Sync Pending',
+          dotBg: 'bg-blue-400',
+          textColor: 'text-blue-200',
+        };
+      case 'offline':
+        return {
+          icon: <CloudOff className="w-4 h-4 text-orange-400" />,
+          label: 'Offline (Saved Locally)',
+          dotBg: 'bg-orange-400',
+          textColor: 'text-orange-200',
+        };
+      case 'conflict':
+        return {
+          icon: <AlertTriangle className="w-4 h-4 text-red-400" />,
+          label: 'Conflict Detected',
+          dotBg: 'bg-red-400',
+          textColor: 'text-red-200',
+        };
+      case 'error':
+      default:
+        return {
+          icon: <AlertCircle className="w-4 h-4 text-rose-500" />,
+          label: 'Save Failed',
+          dotBg: 'bg-rose-500',
+          textColor: 'text-rose-300',
+        };
+    }
+  }
+
+  const config = getStatusConfig(saveStatus);
+
+  const formattedTime = lastSavedAt
+    ? new Date(lastSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
+
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-surface-700 bg-surface-950/50 px-3 py-1.5 text-xs font-semibold text-slate-200">
-      <span className={`h-2 w-2 rounded-full ${
-        status === 'saved' ? 'bg-emerald-400' :
-        status === 'saving' ? 'bg-amber-400' :
-        status === 'error' ? 'bg-red-400' : 'bg-sky-400'
-      }`} />
-      {STATUS_COPY[status]}
+    <div
+      role="status"
+      aria-live="polite"
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md shadow-sm transition-all duration-200 text-xs font-medium ${config.textColor} ${className}`}
+    >
+      {config.icon}
+      <span>{config.label}</span>
+      {saveStatus === 'saved' && formattedTime && (
+        <span className="text-[10px] text-slate-500 pl-1 border-l border-slate-800">
+          {formattedTime}
+        </span>
+      )}
     </div>
   );
 }

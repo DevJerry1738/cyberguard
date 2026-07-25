@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
+import { getAssessmentSession } from '@/features/assessments/actions/sessions';
 
 export const metadata: Metadata = {
   title: 'Assessment Complete',
@@ -13,6 +14,8 @@ interface AssessmentCompletePageProps {
 
 export default async function AssessmentCompletePage({ params }: AssessmentCompletePageProps) {
   const resolvedParams = await params;
+  const sessionData = await getAssessmentSession(resolvedParams.id);
+  const sessionName = sessionData?.session.template_name;
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-4xl mx-auto w-full">
@@ -20,7 +23,13 @@ export default async function AssessmentCompletePage({ params }: AssessmentCompl
         <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-300" />
         <h1 className="mt-3 text-2xl font-semibold text-white">Assessment submitted</h1>
         <p className="mt-2 text-sm text-slate-300">
-          Session {resolvedParams.id} has been completed and locked for review.
+          {sessionName ? (
+            <>
+              Assessment <span className="font-semibold text-white">"{sessionName}"</span> has been completed and locked for review.
+            </>
+          ) : (
+            `Session ${resolvedParams.id} has been completed and locked for review.`
+          )}
         </p>
         <div className="mt-5 flex items-center justify-center gap-3">
           <Link href="/assessments" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white">

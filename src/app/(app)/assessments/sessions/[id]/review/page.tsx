@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/dashboard/PageHeader';
 import { StatusBadge } from '@/components/dashboard/StatusBadge';
 import { getAssessmentRuntime, getAssessmentResponses } from '@/features/assessments/actions/runtime';
 import { ReviewPanel } from '@/features/assessments/components/ReviewPanel';
+import { SubmitReviewButton } from '@/features/assessments/components/SubmitReviewButton';
 
 export const metadata: Metadata = {
   title: 'Assessment Review',
@@ -43,12 +44,13 @@ export default async function AssessmentReviewPage({ params }: AssessmentReviewP
         >
           Back to wizard
         </Link>
-        <Link
-          href={`/assessments/sessions/${resolvedParams.id}/complete`}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Submit assessment
-        </Link>
+        <SubmitReviewButton
+          sessionId={resolvedParams.id}
+          responses={responses}
+          missingRequired={runtime.groups.flatMap(g => g.questions).filter(q => q.is_required && !responses[q.id]).length}
+          totalRequired={runtime.groups.flatMap(g => g.questions).filter(q => q.is_required).length}
+          answeredRequired={runtime.groups.flatMap(g => g.questions).filter(q => q.is_required && !!responses[q.id]).length}
+        />
       </div>
     </div>
   );

@@ -17,13 +17,40 @@ async function getOrgContext() {
 
   if (!user) redirect('/login');
 
+  const { data: membership, error: membershipError } = await supabase
+    .from('organization_members')
+    .select('organization_id')
+    .eq('profile_id', user.id)
+    .maybeSingle();
+
+  if (membership?.organization_id) {
+    return { supabase, user, organizationId: membership.organization_id };
+  }
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('organization_id')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  return { supabase, user, organizationId: profile?.organization_id ?? null };
+  if (profile?.organization_id) {
+    return { supabase, user, organizationId: profile.organization_id };
+  }
+
+  if (membershipError) {
+    const adminSupabase = await createClient();
+    const { data: adminMembership } = await adminSupabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('profile_id', user.id)
+      .maybeSingle();
+
+    if (adminMembership?.organization_id) {
+      return { supabase, user, organizationId: adminMembership.organization_id };
+    }
+  }
+
+  return { supabase, user, organizationId: null };
 }
 
 async function getUserRole(
@@ -54,7 +81,7 @@ export async function listAssessmentSessions(filters?: {
   search?: string;
   status?: string;
 }): Promise<AssessmentSession[]> {
-  const { supabase, organizationId } = await getOrgContext();
+  const { supabase, user, organizationId } = await getOrgContext();
   if (!organizationId) return [];
 
   let query = supabase
@@ -72,6 +99,17 @@ export async function listAssessmentSessions(filters?: {
 
   if (filters?.status && filters.status !== 'All') {
     query = query.eq('status', filters.status);
+  }
+
+  // Employees should not see archived sessions
+  try {
+    const role = await getUserRole(supabase, user.id, organizationId);
+    if (!filters?.status && role === 'Employee') {
+      query = query.neq('status', 'Archived');
+    }
+  } catch (e) {
+    // default to hiding archived for unknowns
+    if (!filters?.status) query = query.neq('status', 'Archived');
   }
 
   const { data, error } = await query;
@@ -445,4 +483,34 @@ export async function listAssignedAssessments(): Promise<AssessmentSession[]> {
   }
 
   return (sessions ?? []) as AssessmentSession[];
+}
+
+export async function deleteAssessmentSession(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase, user, organizationId } = await getOrgContext();
+  if (!organizationId) return { success: false, error: 'No organization found' };
+
+  const role = await getUserRole(supabase, user.id, organizationId);
+  if (!['Owner', 'Admin', 'Security Officer'].includes(role)) {
+    return { success: false, error: 'Access Denied: Insufficient permissions' };
+  }
+
+  const { error } = await supabase
+    .from('assessment_sessions')
+    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('organization_id', organizationId);
+
+  if (error) return { success: false, error: error.message };
+
+  await supabase.from('audit_logs').insert({
+    organization_id: organizationId,
+    profile_id: user.id,
+    action: 'assessment.session.delete',
+    details: { id },
+  });
+
+  invalidate();
+  return { success: true };
 }
