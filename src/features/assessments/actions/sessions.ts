@@ -118,7 +118,42 @@ export async function listAssessmentSessions(filters?: {
     return [];
   }
 
-  return (data ?? []) as AssessmentSession[];
+  const sessions = (data ?? []) as AssessmentSession[];
+  if (sessions.length === 0) return [];
+
+  // Build a map of draft progress per session for the current user.
+  // Draft progress can be higher than the DB value when the user has answered
+  // questions in the wizard but the session.progress_percent hasn't synced yet.
+  const sessionIds = sessions.map(s => s.id);
+  const { data: drafts } = await supabase
+    .from('assessment_drafts')
+    .select('session_id, progress')
+    .in('session_id', sessionIds)
+    .eq('user_id', user.id);
+
+  const draftMap = new Map<string, number>();
+  if (drafts) {
+    for (const d of drafts) {
+      if (typeof d.progress === 'number') {
+        draftMap.set(d.session_id, d.progress);
+      }
+    }
+  }
+
+  return sessions.map(session => {
+    // Completed sessions are always 100 %
+    if (session.status === 'Completed') {
+      return { ...session, progress_percent: 100 };
+    }
+
+    // Use whichever is higher: the DB-stored value or the draft value.
+    // This ensures progress is never shown as lower than what was last saved.
+    const dbProgress = session.progress_percent ?? 0;
+    const draftProgress = draftMap.get(session.id) ?? 0;
+    const progress = Math.max(dbProgress, draftProgress);
+
+    return { ...session, progress_percent: progress };
+  });
 }
 
 export async function getAssessmentSession(sessionId: string): Promise<{
@@ -477,12 +512,28 @@ export async function listAssignedAssessments(): Promise<AssessmentSession[]> {
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
-  if (sessionsError) {
-    console.error('Failed to list assigned assessments:', sessionsError);
-    return [];
+  const rawSessions = (sessions ?? []) as AssessmentSession[];
+  if (rawSessions.length === 0) return [];
+
+  const { data: drafts } = await supabase
+    .from('assessment_drafts')
+    .select('session_id, progress')
+    .in('session_id', sessionIds)
+    .eq('user_id', user.id);
+
+  const draftMap = new Map<string, number>();
+  if (drafts) {
+    for (const d of drafts) {
+      if (typeof d.progress === 'number') {
+        draftMap.set(d.session_id, d.progress);
+      }
+    }
   }
 
-  return (sessions ?? []) as AssessmentSession[];
+  return rawSessions.map(session => ({
+    ...session,
+    progress_percent: draftMap.get(session.id) ?? session.progress_percent ?? 0,
+  }));
 }
 
 export async function deleteAssessmentSession(
@@ -498,7 +549,11 @@ export async function deleteAssessmentSession(
 
   const { error } = await supabase
     .from('assessment_sessions')
-    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: user.id,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .eq('organization_id', organizationId);
 

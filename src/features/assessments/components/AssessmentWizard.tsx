@@ -53,7 +53,7 @@ export function SubmitConfirmationModal({
 
   if (!isOpen) return null;
 
-  const isComplete = progressPercentage === 100;
+  const isComplete = progressPercentage === 100 || (totalCount > 0 && answeredCount >= totalCount);
   const barColor = isComplete
     ? 'bg-emerald-500'
     : progressPercentage >= 80
@@ -294,14 +294,27 @@ function AssessmentWizardInner({ runtime, userRole }: { runtime: AssessmentRunti
     setValidationMessage(null);
   };
 
+  const handleOpenSubmitModal = async () => {
+    // Save all in-memory answers to draft before opening the submit modal.
+    // Do NOT save again inside handleSubmit — a second save increments the
+    // draft version and the client's cached version falls out of sync,
+    // triggering the optimistic-concurrency conflict dialog.
+    await manualSave();
+    setShowSubmitConfirm(true);
+  };
+
   const handleSubmit = () => {
     startTransition(async () => {
+      // submitAssessment persists all responses, cleans up the draft, and sets
+      // progress_percent = 100 on the session — no extra manualSave() needed here.
       const result = await submitAssessment(runtime.session.id, responses);
       if (!result.success) {
         setValidationMessage(result.error ?? 'Submission failed.');
         setShowSubmitConfirm(false);
         return;
       }
+      // Draft is already deleted server-side by submitAssessment.
+      // Clear local state so the DraftProvider doesn't try to re-save.
       await discardDraft();
       router.push(`/assessments/sessions/${runtime.session.id}/complete`);
     });
@@ -324,7 +337,18 @@ function AssessmentWizardInner({ runtime, userRole }: { runtime: AssessmentRunti
         <ResumeCard
           assessmentName={runtime.session.template_name}
           onContinue={() => {
-            if (initialDraftToResume.current_question) {
+            // Find first unanswered required question, or first unanswered question overall
+            let firstUnansweredIdx = flattenedQuestions.findIndex(
+              q => q.is_required && !hasResponseValue(responses[q.id])
+            );
+            if (firstUnansweredIdx < 0) {
+              firstUnansweredIdx = flattenedQuestions.findIndex(
+                q => !hasResponseValue(responses[q.id])
+              );
+            }
+            if (firstUnansweredIdx >= 0) {
+              setCurrentQuestionIndex(firstUnansweredIdx);
+            } else if (initialDraftToResume.current_question) {
               const idx = flattenedQuestions.findIndex(q => q.id === initialDraftToResume.current_question);
               if (idx >= 0) setCurrentQuestionIndex(idx);
             }
@@ -426,7 +450,7 @@ function AssessmentWizardInner({ runtime, userRole }: { runtime: AssessmentRunti
                 onNext={() => goToQuestion(currentQuestionIndex + 1)}
                 onSave={manualSave}
                 onReview={handleReviewToggle}
-                onSubmit={() => setShowSubmitConfirm(true)}
+                onSubmit={handleOpenSubmitModal}
                 isPending={isPending}
                 showReview={showReview}
               />

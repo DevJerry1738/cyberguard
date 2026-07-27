@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/dashboard/PageHeader';
 import { listAssessmentSessions } from '@/features/assessments/actions/sessions';
 import { AssessmentsDashboard } from '@/features/assessments/components/AssessmentsDashboard';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Assessments',
   description: 'Run and manage compliance assessments.',

@@ -263,6 +263,7 @@ export function DraftProvider({
 
       if (res.success && res.draft) {
         setVersion(res.draft.version);
+        versionRef.current = res.draft.version;
         setLastSavedAt(res.draft.last_saved_at);
         setSaveStatus('saved');
         isDirtyRef.current = false;

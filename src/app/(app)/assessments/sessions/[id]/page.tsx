@@ -8,6 +8,7 @@ import { getAssessmentSession } from '@/features/assessments/actions/sessions';
 import { getMembers } from '@/features/organizations/actions/data';
 import { AssignUsersDialog } from '@/features/assessments/components/AssignUsersDialog';
 import { ArchiveSessionDialog } from '@/features/assessments/components/ArchiveSessionDialog';
+import { DeleteSessionDialog } from '@/features/assessments/components/DeleteSessionDialog';
 
 export const metadata: Metadata = {
   title: 'Assessment Session',
@@ -60,12 +61,6 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
                 sessionName={session.template_name}
                 isArchived={session.status === 'Archived'}
               />
-              <
-              // @ts-ignore-next-line server-component
-              >
-                {/* Delete button handled in client dialog component */}
-              </
-              >
               <DeleteSessionDialog sessionId={session.id} sessionName={session.template_name} />
             </div>
           )}

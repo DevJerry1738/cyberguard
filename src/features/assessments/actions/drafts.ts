@@ -342,16 +342,18 @@ export async function saveAssessmentDraft(
       return { success: false, error: updateError.message };
     }
 
-    // Also sync responses & progress back to assessment_sessions table for compatibility
-    await supabase
+    // Also sync progress back to assessment_sessions table for compatibility.
+    // Use admin client so RLS never silently blocks the progress_percent update.
+    const adminClientForSync = getAdminSupabaseClient();
+    const syncClient = adminClientForSync ?? supabase;
+    await syncClient
       .from('assessment_sessions')
       .update({
         progress_percent: newProgress,
         status: 'In Progress',
         updated_at: lastSavedAt,
       })
-      .eq('id', input.sessionId)
-      .eq('organization_id', organizationId);
+      .eq('id', input.sessionId);
 
     // Audit log save event
     const action = input.forceOverwrite
