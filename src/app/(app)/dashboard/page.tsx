@@ -30,21 +30,24 @@ export default async function DashboardPage() {
   let memberCount = 1;
   let deptCount = 0;
   let userRole = 'Owner';
+  let auditLogs = [] as Awaited<ReturnType<typeof getRecentAuditLogs>>;
 
   if (orgId) {
-    const [membersRes, deptsRes, membershipRes] = await Promise.all([
+    const [membersRes, deptsRes, membershipRes, logs] = await Promise.all([
       supabase.from('organization_members').select('profile_id', { count: 'exact', head: true }).eq('organization_id', orgId),
       supabase.from('departments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
       supabase.from('organization_members').select('roles(name)').eq('profile_id', user.id).eq('organization_id', orgId).single(),
+      getRecentAuditLogs(8, orgId),
     ]);
     memberCount = membersRes.count ?? 1;
     deptCount = deptsRes.count ?? 0;
     if (membershipRes.data?.roles && typeof membershipRes.data.roles === 'object' && 'name' in membershipRes.data.roles) {
       userRole = membershipRes.data.roles.name as string;
     }
+    auditLogs = logs;
+  } else {
+    auditLogs = [];
   }
-
-  const auditLogs = await getRecentAuditLogs(8);
 
   const firstName = profile?.first_name ?? user.email?.split('@')[0] ?? 'there';
 

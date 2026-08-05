@@ -115,11 +115,12 @@ export default async function AssessmentWizardPage({ params }: AssessmentWizardP
   }
 
   const resolvedParams = await params;
+  const responsePromise = getAssessmentResponses(resolvedParams.id);
   const runtimeFromPrimary = await getAssessmentRuntime(resolvedParams.id);
   const runtime = runtimeFromPrimary ?? (await loadRuntimeFallback(resolvedParams.id));
   console.log('[wizard page] runtimeFromPrimary', runtimeFromPrimary ? 'ok' : 'null');
   console.log('[wizard page] runtimeFromFallback', runtime ? 'ok' : 'null');
-  const responses = await getAssessmentResponses(resolvedParams.id);
+  const responses = await responsePromise;
 
   let userRole = 'Employee';
   let canManage = false;
@@ -136,7 +137,7 @@ export default async function AssessmentWizardPage({ params }: AssessmentWizardP
     canManage = ['Owner', 'Admin', 'Security Officer'].includes(userRole);
   }
 
-  const members = await getMembers();
+  const members = canManage && runtime ? await getMembers() : [];
   const sessionHref = runtime
     ? `/assessments/sessions/${runtime.session.id}`
     : `/assessments/sessions/${resolvedParams.id}`;

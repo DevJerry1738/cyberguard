@@ -758,5 +758,7 @@ export async function submitAssessment(
   revalidatePath(`/assessments/sessions/${sessionId}/wizard`);
   revalidatePath(`/assessments/sessions/${sessionId}/review`);
   revalidatePath(`/assessments/sessions/${sessionId}/complete`);
+
+  return { success: true };
   return { success: true };
 }

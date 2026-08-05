@@ -40,8 +40,8 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
   const userRole = (membership?.roles as { name?: string } | null)?.name || 'Employee';
   const canManage = ['Owner', 'Admin', 'Security Officer'].includes(userRole);
 
-  const members = await getMembers();
   const { session, assignments } = sessionData;
+  const members = assignments.length > 0 ? await getMembers() : [];
   const memberEmailLookup = new Map(
     members.map(member => [member.profile_id, member.profiles?.email ?? 'Unknown user'])
   );

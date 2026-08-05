@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/dashboard/PageHeader';
@@ -61,19 +62,27 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
     status,
   });
 
-  // Query domain counts for each template to display on cards/tables
-  const templatesWithCount = await Promise.all(
-    templates.map(async (tmpl) => {
-      const { count } = await supabase
-        .from('assessment_template_domains')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_id', tmpl.id);
-      return {
-        ...tmpl,
-        domain_count: count ?? 0,
-      };
-    })
-  );
+  // Fetch domain counts in a single query to avoid N+1 performance issues.
+  const templateIds = templates.map(tmpl => tmpl.id);
+  const { data: domainCountsData } = await supabase
+    .from('assessment_template_domains')
+    .select('template_id, count:template_id', { count: 'exact', head: true })
+    .in('template_id', templateIds)
+    .group('template_id');
+
+  const domainCountMap = new Map<string, number>();
+  if (Array.isArray(domainCountsData)) {
+    for (const row of domainCountsData) {
+      if (row.template_id && typeof row.count === 'number') {
+        domainCountMap.set(row.template_id, row.count);
+      }
+    }
+  }
+
+  const templatesWithCount = templates.map(tmpl => ({
+    ...tmpl,
+    domain_count: domainCountMap.get(tmpl.id) ?? 0,
+  }));
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full space-y-6">

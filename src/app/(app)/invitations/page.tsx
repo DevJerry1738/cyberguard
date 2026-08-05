@@ -45,15 +45,6 @@ export default async function InvitationsPage() {
     }
   }
 
-  // Get active roles in organization
-  const { data: roles } = await supabase
-    .from('roles')
-    .select('id, name')
-    .order('name');
-
-  const invitations = await getInvitations();
-  const departments = await getDepartments();
-
   const isAuthorized = organizationId
     ? await hasPermission(supabase, user.id, organizationId, PERMISSIONS.MEMBERS_INVITE)
     : false;
@@ -70,6 +61,14 @@ export default async function InvitationsPage() {
       </div>
     );
   }
+
+  const [rolesRes, invitations, departments] = await Promise.all([
+    supabase.from('roles').select('id, name').order('name'),
+    getInvitations(),
+    getDepartments(),
+  ]);
+
+  const roles = rolesRes?.data ?? [];
 
   return (
     <div className="flex-grow px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full">

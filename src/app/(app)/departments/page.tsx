@@ -42,12 +42,13 @@ export default async function DepartmentsPage() {
     }
   }
 
-  // Fetch active + archived departments
-  const activeDepartments = await getDepartments(false);
-  const archivedDepartments = await getDepartments(true);
+  // Fetch active + archived departments and member roster in parallel
+  const [activeDepartments, archivedDepartments, members] = await Promise.all([
+    getDepartments(false),
+    getDepartments(true),
+    getMembers(),
+  ]);
   const allDepartments = archivedDepartments;
-
-  const members = await getMembers();
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full">

@@ -129,18 +129,24 @@ export type AuditLog = {
   } | null;
 };
 
-export async function getRecentAuditLogs(limit = 10): Promise<AuditLog[]> {
+export async function getRecentAuditLogs(limit = 10, organizationId?: string): Promise<AuditLog[]> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  let orgId = organizationId ?? null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('organization_id')
-    .eq('id', user.id)
-    .single();
+  if (!orgId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
 
-  if (!profile?.organization_id) return [];
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    orgId = profile?.organization_id ?? null;
+  }
+
+  if (!orgId) return [];
 
   const { data } = await supabase
     .from('audit_logs')
@@ -152,7 +158,7 @@ export async function getRecentAuditLogs(limit = 10): Promise<AuditLog[]> {
       profile_id,
       profiles!audit_logs_profile_id_fkey(first_name, last_name, email)
     `)
-    .eq('organization_id', profile.organization_id)
+    .eq('organization_id', orgId)
     .order('created_at', { ascending: false })
     .limit(limit);
 

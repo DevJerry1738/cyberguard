@@ -18,13 +18,14 @@ interface AssessmentReviewPageProps {
 
 export default async function AssessmentReviewPage({ params }: AssessmentReviewPageProps) {
   const resolvedParams = await params;
-  const runtime = await getAssessmentRuntime(resolvedParams.id);
+  const [runtime, responses] = await Promise.all([
+    getAssessmentRuntime(resolvedParams.id),
+    getAssessmentResponses(resolvedParams.id),
+  ]);
 
   if (!runtime) {
     notFound();
   }
-
-  const responses = await getAssessmentResponses(resolvedParams.id);
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full space-y-6">
