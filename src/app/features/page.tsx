@@ -11,7 +11,7 @@ import { CTASection } from "@/components/marketing/cta-section";
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Explore every capability in CyberGuard — from structured security assessments and dynamic risk scoring to compliance tracking, audit logs, and team management.",
+    "Explore CyberGuard's current organization and assessment workflows, plus capabilities planned for future releases.",
   alternates: { canonical: "/features" },
 };
 
@@ -22,14 +22,13 @@ const featureGroups = [
     Icon: ClipboardCheck,
     headline: "Structure your security assessments",
     description:
-      "CyberGuard's assessment engine guides your team through framework-aligned questionnaires, collecting evidence, tracking progress, and producing a structured compliance record — automatically.",
+      "Build assessment templates, organize questions by security domain, assign sessions, save drafts, and follow completion progress. Evidence uploads and pre-populated framework libraries are not currently confirmed as available.",
     capabilities: [
-      "SOC 2, ISO 27001, and NIST CSF templates out-of-the-box",
-      "Department-level task delegation with deadline tracking",
-      "Evidence file upload with secure Supabase Storage",
-      "Auto-save drafts and resume from any device",
-      "Bulk question import for custom frameworks",
-      "Real-time completion progress tracking",
+      "Custom assessment template and question builder",
+      "Assessment session assignments",
+      "Draft saving and resume workflow",
+      "Assessment completion progress",
+      "Review and submission flow",
     ],
   },
   {
@@ -38,14 +37,13 @@ const featureGroups = [
     Icon: BarChart3,
     headline: "Understand and prioritise your threats",
     description:
-      "Our risk engine turns raw assessment data into a prioritised, quantified risk register — giving security leaders the context they need to make confident decisions.",
+      "Risk register, likelihood-and-impact scoring, recommendations, and remediation management are planned capabilities; they are not currently available in the app.",
     capabilities: [
-      "Likelihood × Impact risk scoring matrix",
-      "Dynamic severity classification (Critical → Low)",
-      "Risk trend tracking over time",
-      "Owner assignment and remediation workflows",
-      "Linked recommendations per identified risk",
-      "Executive risk summary export",
+      "Planned risk register",
+      "Planned likelihood-and-impact scoring",
+      "Planned severity and trend views",
+      "Planned remediation ownership",
+      "Planned risk recommendations",
     ],
   },
   {
@@ -54,14 +52,13 @@ const featureGroups = [
     Icon: ShieldCheck,
     headline: "Know your compliance score at all times",
     description:
-      "Never be surprised by an audit again. CyberGuard gives you a live compliance score mapped to your chosen frameworks, with clear visibility into which controls need attention.",
+      "Calculated cross-framework compliance scores and audit-readiness analytics are planned. Assessment progress is available, but it is not a certification or compliance attestation.",
     capabilities: [
-      "Real-time compliance score across frameworks",
-      "Control-level gap analysis and health indicators",
-      "Multi-framework control mapping (write once, satisfy many)",
-      "Compliance history and trend charts",
-      "Audit readiness checklist generator",
-      "One-click share with external auditors",
+      "Planned compliance score calculations",
+      "Planned control gap analysis",
+      "Planned cross-framework mapping",
+      "Planned compliance history",
+      "Planned audit-readiness exports",
     ],
   },
   {
@@ -70,14 +67,11 @@ const featureGroups = [
     Icon: ScrollText,
     headline: "Prove accountability to anyone who asks",
     description:
-      "CyberGuard automatically captures every meaningful action across your programme into a tamper-proof, timestamped audit trail. Your governance story is always ready.",
+      "Selected application actions create timestamped activity records. Full event coverage, append-only enforcement, audit search, and export are not yet verified or available.",
     capabilities: [
-      "Immutable audit log — every action recorded",
-      "Advanced search and date-range filtering",
-      "User, department, and action-type filters",
-      "Export logs as CSV for external review",
-      "Read-only auditor access mode",
-      "Compliance period snapshots",
+      "Selected activity event records",
+      "Recent activity on the dashboard",
+      "Planned dedicated audit viewer and export",
     ],
   },
   {
@@ -86,14 +80,14 @@ const featureGroups = [
     Icon: Users2,
     headline: "Collaborate across your entire organisation",
     description:
-      "Security is a team sport. CyberGuard makes it easy to organise your workforce, assign responsibilities, and ensure every department plays its part in your security programme.",
+      "Manage organization members, invitations, roles, and departments. Verify role and department boundaries for each workflow before relying on them.",
     capabilities: [
-      "Five built-in roles: Owner, Admin, Security Officer, Manager, Employee",
-      "Department grouping and scoped access",
-      "Secure member invitation via email",
-      "Role assignment and permission management",
-      "Assessment task delegation to department heads",
-      "Multi-organisation support (agencies & MSPs)",
+      "Organization membership and invitation flows",
+      "Role definitions and assignment",
+      "Department management",
+      "Assessment session assignment",
+      "Role/tenant access verification remains ongoing",
+      "Multi-organization support is not confirmed",
     ],
   },
 ];
@@ -116,12 +110,11 @@ export default function FeaturesPage() {
         <div className="container-wide relative z-10 max-w-3xl mx-auto">
           <Badge variant="brand" className="mb-6 text-xs">Platform Capabilities</Badge>
           <h1 id="features-page-heading" className="font-display text-5xl sm:text-6xl font-bold text-white leading-tight mb-6">
-            Every tool your security programme needs
+            Assessment workflows for your security programme
           </h1>
           <p className="text-lg text-slate-400 leading-relaxed mb-8">
-            CyberGuard brings together security assessments, risk management, compliance tracking,
-            audit governance, and team collaboration into one cohesive platform — without the
-            enterprise complexity.
+            CyberGuard currently focuses on assessment and organization workflows. Risk management,
+            calculated compliance analytics, and report generation are roadmap capabilities.
           </p>
           <Link href="/register">
             <Button size="lg" variant="primary" className="gap-2">

@@ -93,8 +93,23 @@ export interface AssessmentQuestion {
   updated_at: string;
   deleted_at: string | null;
   deleted_by: string | null;
+  source_pack_id?: string | null;
+  source_pack_version_id?: string | null;
+  source_pack_question_id?: string | null;
+  controls?: AssessmentQuestionControlSnapshot[];
   // Joined
   options?: QuestionOption[];
+}
+
+export interface AssessmentQuestionControlSnapshot {
+  framework_control_id: string;
+  framework_key: string;
+  framework_name: string;
+  framework_version: string;
+  control_identifier: string;
+  mapping_source: string | null;
+  source_reference: string | null;
+  review_status: 'pending' | 'verified' | 'rejected';
 }
 
 // Grouped by domain for the builder workspace

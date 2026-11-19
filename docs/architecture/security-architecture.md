@@ -33,7 +33,7 @@ Tenant isolation is enforced globally via database-level **Row Level Security (R
 - **CSRF (Cross-Site Request Forgery)**: Next.js Server Actions automatically validate request source origin.
 
 ### 3.3. HTTP Security Headers
-The platform integrates standard security headers via `next.config.ts`:
+The following headers are a **target security baseline**, not a claim that they are currently configured. The current project config is `next.config.js`; as of this review it does not configure these headers. Implement and verify headers against the deployed app before treating this control as active:
 ```json
 Referrer-Policy: "strict-origin-when-cross-origin"
 X-Content-Type-Options: "nosniff"

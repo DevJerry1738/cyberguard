@@ -62,20 +62,18 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
     status,
   });
 
-  // Fetch domain counts in a single query to avoid N+1 performance issues.
+  // Fetch template/domain links in one query; Supabase PostgREST does not expose
+  // a `.group()` filter builder method.
   const templateIds = templates.map(tmpl => tmpl.id);
-  const { data: domainCountsData } = await supabase
+  const { data: templateDomains } = await supabase
     .from('assessment_template_domains')
-    .select('template_id, count:template_id', { count: 'exact', head: true })
-    .in('template_id', templateIds)
-    .group('template_id');
+    .select('template_id')
+    .in('template_id', templateIds);
 
   const domainCountMap = new Map<string, number>();
-  if (Array.isArray(domainCountsData)) {
-    for (const row of domainCountsData) {
-      if (row.template_id && typeof row.count === 'number') {
-        domainCountMap.set(row.template_id, row.count);
-      }
+  if (templateDomains) {
+    for (const row of templateDomains) {
+      domainCountMap.set(row.template_id, (domainCountMap.get(row.template_id) ?? 0) + 1);
     }
   }
 
@@ -113,5 +111,3 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
     </div>
   );
 }
-
-import Link from 'next/link';

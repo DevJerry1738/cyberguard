@@ -67,16 +67,17 @@ export function DraftProvider({
   const [initialDraftToResume, setInitialDraftToResume] = useState<AssessmentDraftRecord | null>(null);
 
   const isDirtyRef = useRef<boolean>(false);
+  const editRevisionRef = useRef<number>(0);
+  const saveInFlightRef = useRef<Promise<boolean> | null>(null);
   const responsesRef = useRef<DraftResponses>(initialResponses);
   const currentDomainRef = useRef<string | null>(null);
   const currentQuestionRef = useRef<string | null>(null);
   const versionRef = useRef<number>(1);
 
-  // Keep refs in sync with state
-  responsesRef.current = responses;
-  currentDomainRef.current = currentDomain;
-  currentQuestionRef.current = currentQuestion;
-  versionRef.current = version;
+  const updateVersion = useCallback((nextVersion: number) => {
+    versionRef.current = nextVersion;
+    setVersion(nextVersion);
+  }, []);
 
   // 1. Initial Draft Loading & Resume Detection
   useEffect(() => {
@@ -102,15 +103,22 @@ export function DraftProvider({
 
           if (localTime > serverTime) {
             // Local draft is newer (e.g. edited offline or right before crash)
-            setVersion(localDraft.version);
-            versionRef.current = localDraft.version;
+            updateVersion(localDraft.version);
             setLastSavedAt(localDraft.lastSavedAt);
             if (localDraft.responses && Object.keys(localDraft.responses).length > 0) {
-              setResponses(prev => ({ ...localDraft.responses, ...prev }));
-              onResponsesChange?.(localDraft.responses);
+              const restoredResponses = { ...localDraft.responses, ...responsesRef.current };
+              responsesRef.current = restoredResponses;
+              setResponses(restoredResponses);
+              onResponsesChange?.(restoredResponses);
             }
-            if (localDraft.currentDomain) setCurrentDomain(localDraft.currentDomain);
-            if (localDraft.currentQuestion) setCurrentQuestion(localDraft.currentQuestion);
+            if (localDraft.currentDomain) {
+              currentDomainRef.current = localDraft.currentDomain;
+              setCurrentDomain(localDraft.currentDomain);
+            }
+            if (localDraft.currentQuestion) {
+              currentQuestionRef.current = localDraft.currentQuestion;
+              setCurrentQuestion(localDraft.currentQuestion);
+            }
 
             setInitialDraftToResume({
               id: activeDraft.id,
@@ -132,15 +140,22 @@ export function DraftProvider({
         }
 
         if (activeDraft) {
-          setVersion(activeDraft.version);
-          versionRef.current = activeDraft.version;
+          updateVersion(activeDraft.version);
           setLastSavedAt(activeDraft.last_saved_at);
           if (activeDraft.responses && Object.keys(activeDraft.responses).length > 0) {
-            setResponses(prev => ({ ...activeDraft.responses, ...prev }));
-            onResponsesChange?.(activeDraft.responses);
+            const restoredResponses = { ...activeDraft.responses, ...responsesRef.current };
+            responsesRef.current = restoredResponses;
+            setResponses(restoredResponses);
+            onResponsesChange?.(restoredResponses);
           }
-          if (activeDraft.current_domain) setCurrentDomain(activeDraft.current_domain);
-          if (activeDraft.current_question) setCurrentQuestion(activeDraft.current_question);
+          if (activeDraft.current_domain) {
+            currentDomainRef.current = activeDraft.current_domain;
+            setCurrentDomain(activeDraft.current_domain);
+          }
+          if (activeDraft.current_question) {
+            currentQuestionRef.current = activeDraft.current_question;
+            setCurrentQuestion(activeDraft.current_question);
+          }
 
           setInitialDraftToResume(activeDraft);
         }
@@ -154,7 +169,7 @@ export function DraftProvider({
     return () => {
       isMounted = false;
     };
-  }, [sessionId]);
+  }, [sessionId, updateVersion, onResponsesChange]);
 
   // 2. Track online/offline status & trigger sync on reconnect
   useEffect(() => {
@@ -195,7 +210,7 @@ export function DraftProvider({
 
     if (syncRes.success && syncRes.draft) {
       await clearAllSyncQueue(sessionId);
-      setVersion(syncRes.draft.version);
+      updateVersion(syncRes.draft.version);
       setLastSavedAt(syncRes.draft.last_saved_at);
       setSaveStatus('saved');
       await saveLocalDraft({
@@ -213,82 +228,116 @@ export function DraftProvider({
     } else {
       setSaveStatus('error');
     }
-  }, [sessionId]);
+  }, [sessionId, updateVersion]);
 
   // 4. Save Execution Engine
   const performSave = useCallback(
     async (isManual: boolean = false): Promise<boolean> => {
+      const activeSave = saveInFlightRef.current;
+      if (activeSave) {
+        const activeSaveSucceeded = await activeSave;
+        if (!activeSaveSucceeded) return false;
+        if (!isDirtyRef.current) return true;
+      }
+
       if (!isDirtyRef.current && !isManual) return true;
 
-      setSaveStatus('saving');
+      const savePromise = (async (): Promise<boolean> => {
+        let shouldSave = isDirtyRef.current || isManual;
 
-      const currentResponses = responsesRef.current;
-      const domain = currentDomainRef.current;
-      const question = currentQuestionRef.current;
-      const ver = versionRef.current;
+        while (shouldSave) {
+          const revisionAtStart = editRevisionRef.current;
+          const currentResponses = responsesRef.current;
+          const domain = currentDomainRef.current;
+          const question = currentQuestionRef.current;
+          const ver = versionRef.current;
 
-      // Always save to IndexedDB local cache first (offline-ready persistence)
-      await saveLocalDraft({
-        sessionId,
-        responses: currentResponses,
-        currentDomain: domain,
-        currentQuestion: question,
-        version: ver,
-      });
+          setSaveStatus('saving');
 
-      if (!navigator.onLine) {
-        setIsOffline(true);
-        setSaveStatus('offline');
-        await enqueueOfflineSync({
-          sessionId,
-          responses: currentResponses,
-          currentDomain: domain,
-          currentQuestion: question,
-          version: ver,
-        });
-        isDirtyRef.current = false;
+          // Persist locally before each online/offline attempt.
+          await saveLocalDraft({
+            sessionId,
+            responses: currentResponses,
+            currentDomain: domain,
+            currentQuestion: question,
+            version: ver,
+          });
+
+          if (!navigator.onLine) {
+            setIsOffline(true);
+            setSaveStatus('offline');
+            await enqueueOfflineSync({
+              sessionId,
+              responses: currentResponses,
+              currentDomain: domain,
+              currentQuestion: question,
+              version: ver,
+            });
+            isDirtyRef.current = editRevisionRef.current !== revisionAtStart;
+            if (isDirtyRef.current) continue;
+            return true;
+          }
+
+          const res = await saveAssessmentDraft(
+            {
+              sessionId,
+              responses: currentResponses,
+              currentDomain: domain,
+              currentQuestion: question,
+              version: ver,
+            },
+            !isManual
+          );
+
+          if (res.success && res.draft) {
+            updateVersion(res.draft.version);
+            setLastSavedAt(res.draft.last_saved_at);
+
+            // Update the local cache with the committed server revision.
+            await saveLocalDraft({
+              sessionId,
+              responses: res.draft.responses,
+              currentDomain: res.draft.current_domain,
+              currentQuestion: res.draft.current_question,
+              version: res.draft.version,
+              lastSavedAt: res.draft.last_saved_at,
+            });
+
+            isDirtyRef.current = editRevisionRef.current !== revisionAtStart;
+            if (isDirtyRef.current) {
+              isManual = false;
+              shouldSave = true;
+              continue;
+            }
+
+            setSaveStatus('saved');
+            return true;
+          }
+
+          if (res.conflict && res.serverDraft) {
+            setHasConflict(true);
+            setServerDraftForConflict(res.serverDraft);
+            setSaveStatus('conflict');
+            return false;
+          }
+
+          setSaveStatus('error');
+          return false;
+        }
+
         return true;
-      }
+      })();
 
-      const res = await saveAssessmentDraft(
-        {
-          sessionId,
-          responses: currentResponses,
-          currentDomain: domain,
-          currentQuestion: question,
-          version: ver,
-        },
-        !isManual
-      );
-
-      if (res.success && res.draft) {
-        setVersion(res.draft.version);
-        versionRef.current = res.draft.version;
-        setLastSavedAt(res.draft.last_saved_at);
-        setSaveStatus('saved');
-        isDirtyRef.current = false;
-
-        // Update local cache with server version and timestamp
-        await saveLocalDraft({
-          sessionId,
-          responses: res.draft.responses,
-          currentDomain: res.draft.current_domain,
-          currentQuestion: res.draft.current_question,
-          version: res.draft.version,
-          lastSavedAt: res.draft.last_saved_at,
-        });
-        return true;
-      } else if (res.conflict && res.serverDraft) {
-        setHasConflict(true);
-        setServerDraftForConflict(res.serverDraft);
-        setSaveStatus('conflict');
-        return false;
-      } else {
-        setSaveStatus('error');
-        return false;
+      saveInFlightRef.current = savePromise;
+      try {
+        return await savePromise;
+      } finally {
+        if (saveInFlightRef.current === savePromise) {
+          saveInFlightRef.current = null;
+        }
       }
     },
-    [sessionId]
+    [sessionId, updateVersion]
   );
 
   // 5. Debounced Typing Save (2-3 seconds debounce) & 5-Second Interval Safety Net
@@ -333,11 +382,11 @@ export function DraftProvider({
   // Public Methods
   const updateResponse = useCallback(
     (questionId: string, value: unknown) => {
-      setResponses(prev => {
-        const next = { ...prev, [questionId]: value };
-        onResponsesChange?.(next);
-        return next;
-      });
+      const next = { ...responsesRef.current, [questionId]: value };
+      responsesRef.current = next;
+      setResponses(next);
+      onResponsesChange?.(next);
+      editRevisionRef.current += 1;
       isDirtyRef.current = true;
       setSaveStatus('unsaved');
     },
@@ -345,8 +394,14 @@ export function DraftProvider({
   );
 
   const updateNavigation = useCallback((domainId?: string | null, questionId?: string | null) => {
-    if (domainId !== undefined) setCurrentDomain(domainId);
-    if (questionId !== undefined) setCurrentQuestion(questionId);
+    if (domainId !== undefined) {
+      currentDomainRef.current = domainId;
+      setCurrentDomain(domainId);
+    }
+    if (questionId !== undefined) {
+      currentQuestionRef.current = questionId;
+      setCurrentQuestion(questionId);
+    }
   }, []);
 
   const manualSave = useCallback(async () => {
@@ -357,7 +412,11 @@ export function DraftProvider({
     if (serverDraftForConflict) {
       setResponses(serverDraftForConflict.responses);
       onResponsesChange?.(serverDraftForConflict.responses);
-      setVersion(serverDraftForConflict.version);
+      updateVersion(serverDraftForConflict.version);
+      responsesRef.current = serverDraftForConflict.responses;
+      currentDomainRef.current = serverDraftForConflict.current_domain;
+      currentQuestionRef.current = serverDraftForConflict.current_question;
+      editRevisionRef.current += 1;
       setLastSavedAt(serverDraftForConflict.last_saved_at);
       setCurrentDomain(serverDraftForConflict.current_domain);
       setCurrentQuestion(serverDraftForConflict.current_question);
@@ -375,7 +434,7 @@ export function DraftProvider({
         lastSavedAt: serverDraftForConflict.last_saved_at,
       });
     }
-  }, [serverDraftForConflict, sessionId, onResponsesChange]);
+  }, [serverDraftForConflict, sessionId, onResponsesChange, updateVersion]);
 
   const resolveConflictOverwrite = useCallback(async () => {
     setSaveStatus('saving');
@@ -392,7 +451,11 @@ export function DraftProvider({
     );
 
     if (res.success && res.draft) {
-      setVersion(res.draft.version);
+      updateVersion(res.draft.version);
+      responsesRef.current = res.draft.responses;
+      currentDomainRef.current = res.draft.current_domain;
+      currentQuestionRef.current = res.draft.current_question;
+      editRevisionRef.current += 1;
       setLastSavedAt(res.draft.last_saved_at);
       setHasConflict(false);
       setServerDraftForConflict(null);
@@ -410,7 +473,7 @@ export function DraftProvider({
     } else {
       setSaveStatus('error');
     }
-  }, [sessionId]);
+  }, [sessionId, updateVersion]);
 
   const discardDraft = useCallback(async () => {
     await discardAssessmentDraft(sessionId);
@@ -418,10 +481,14 @@ export function DraftProvider({
     await clearAllSyncQueue(sessionId);
     setInitialDraftToResume(null);
     setResponses({});
-    setVersion(1);
+    updateVersion(1);
+    responsesRef.current = {};
+    currentDomainRef.current = null;
+    currentQuestionRef.current = null;
+    editRevisionRef.current += 1;
     setSaveStatus('saved');
     isDirtyRef.current = false;
-  }, [sessionId]);
+  }, [sessionId, updateVersion]);
 
   const clearResumePrompt = useCallback(() => {
     setInitialDraftToResume(null);

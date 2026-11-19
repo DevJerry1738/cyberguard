@@ -13,7 +13,7 @@ import { CTASection }          from "@/components/marketing/cta-section";
 export const metadata: Metadata = {
   title: "CyberGuard — Cybersecurity Compliance & Risk Assessment Platform",
   description:
-    "Assess your cybersecurity posture, track compliance against SOC 2 and ISO 27001, manage risks, and generate audit-ready reports — all in one platform.",
+    "Manage cybersecurity assessment templates, sessions, team members, and assessment progress in one workspace. Risk analytics and report generation are planned.",
   alternates: { canonical: "/" },
 };
 

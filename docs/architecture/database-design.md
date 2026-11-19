@@ -1,3 +1,7 @@
+# Database Design — Target Model
+
+> This is a conceptual/target data model, not a generated snapshot of the live schema. Confirm every table and column against [Supabase migrations](../../supabase/migrations) before using this as implementation truth. The current product status and migration evidence are recorded in the [project completion plan](../project-completion-plan.md).
+
 # Database Design & ER Diagram
 
 This document details the normalized relational database schema designed for Supabase PostgreSQL.

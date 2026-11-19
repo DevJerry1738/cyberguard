@@ -11,31 +11,31 @@ const painPoints = [
     Icon: TableProperties,
     title: "Manual Compliance Tracking",
     description:
-      "Teams waste hundreds of hours annually copying evidence into spreadsheets. CyberGuard automates evidence collection and maps controls to frameworks automatically.",
+      "Teams often track evidence in spreadsheets. CyberGuard is building structured assessment workflows; evidence collection automation and framework mapping are planned capabilities.",
   },
   {
     Icon: EyeOff,
     title: "Unknown Security Gaps",
     description:
-      "Without structured assessments, critical vulnerabilities go unnoticed for months. Our assessment engine surfaces gaps before auditors — or attackers — do.",
+      "Structured questionnaires can help teams document security processes. CyberGuard does not scan for vulnerabilities or detect threats.",
   },
   {
     Icon: PieChart,
     title: "Poor Risk Visibility",
     description:
-      "Disconnected tools produce conflicting data. CyberGuard consolidates risk signals into a single score, so leadership always knows where they stand.",
+      "A centralized risk score is planned. Current risk scoring and risk-signal aggregation are not available in the application.",
   },
   {
     Icon: GitBranch,
     title: "Fragmented Reporting",
     description:
-      "Preparing board-level compliance reports requires stitching together data from dozens of sources. CyberGuard generates audit-ready reports in minutes.",
+      "Generated compliance reports are planned. The current reports page does not yet produce downloadable reports.",
   },
   {
     Icon: LayoutDashboard,
     title: "No Centralized Command Centre",
     description:
-      "Security professionals switch between five tools to get a complete picture. CyberGuard is the single pane of glass for your entire security programme.",
+      "Security teams often work across disconnected tools. CyberGuard brings organization and assessment workflows together in one workspace; broader security analytics are planned.",
   },
 ];
 
@@ -50,8 +50,8 @@ export function WhyCyberGuardSection() {
         <div className="max-w-2xl mb-16">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-3">The Problem</p>
           <h2 id="why-heading" className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight mb-4">
-            Security compliance is broken.{" "}
-            <span className="text-gradient">We fixed it.</span>
+            Security compliance is complex.{" "}
+            <span className="text-gradient">Start with a structured assessment.</span>
           </h2>
           <p className="text-lg text-slate-400 leading-relaxed">
             Most organizations manage cybersecurity with outdated spreadsheets, siloed

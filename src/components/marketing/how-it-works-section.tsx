@@ -1,38 +1,38 @@
 const steps = [
   {
     number: "01",
-    title: "Register Your Organisation",
+    title: "Create an account and workspace",
     description:
       "Create your CyberGuard workspace, configure your organisation profile, and invite your security and compliance team members in minutes.",
-    detail: "Supports SSO, MFA, and role-based permissions from day one.",
+    detail: "Email authentication, organization onboarding, and role management are implemented; verify provider settings for your environment.",
   },
   {
     number: "02",
     title: "Complete Your First Assessment",
     description:
-      "Select a compliance framework — SOC 2, ISO 27001, or NIST CSF — and work through a structured questionnaire designed for your industry.",
-    detail: "Evidence uploads, department delegation, and auto-save built in.",
+      "Create an assessment template and organize questions into security domains, then start and assign an assessment session.",
+    detail: "Draft saving, resume, and completion progress are implemented. Evidence uploads are not yet available.",
   },
   {
     number: "03",
-    title: "Identify & Prioritise Risks",
+    title: "Review assessment progress",
     description:
-      "CyberGuard automatically calculates risk scores from your assessment responses and surfaces the highest-impact gaps first.",
-    detail: "Dynamic risk matrix with likelihood × impact scoring.",
+      "Use the assessment workspace to review saved responses and follow the session through review and submission.",
+    detail: "Risk scoring and automated gap prioritization are roadmap items.",
   },
   {
     number: "04",
-    title: "Act on Recommendations",
+    title: "Review activity",
     description:
-      "Receive prioritised, actionable recommendations tied to specific controls. Track remediation progress and assign tasks to owners.",
-    detail: "Customisable remediation workflows with due dates.",
+      "Organization and assessment actions can be recorded in the activity history available to the application.",
+    detail: "A dedicated audit search/export experience is planned.",
   },
   {
     number: "05",
-    title: "Monitor & Report Progress",
+    title: "Explore upcoming capabilities",
     description:
-      "Track your compliance score over time and generate polished, audit-ready reports for your board, clients, or certification bodies.",
-    detail: "One-click PDF exports and scheduled reporting.",
+      "Risk registry, calculated compliance analytics, and downloadable reports are planned for future releases.",
+    detail: "These capabilities are not currently available in the application.",
   },
 ];
 
@@ -47,11 +47,10 @@ export function HowItWorksSection() {
         <div className="max-w-2xl mx-auto text-center mb-20">
           <p className="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-3">Getting Started</p>
           <h2 id="how-it-works-heading" className="font-display text-4xl sm:text-5xl font-bold text-white mb-4">
-            From zero to compliant in days
+            A clearer workflow for security assessments
           </h2>
           <p className="text-lg text-slate-400">
-            CyberGuard's guided workflow takes your team from first login to audit-ready
-            in a structured, repeatable process.
+            Current functionality focuses on organization setup and the assessment lifecycle. Reporting and risk management remain on the roadmap.
           </p>
         </div>
 

@@ -74,8 +74,8 @@ export function DashboardPreview() {
             Your security command centre
           </h2>
           <p className="text-lg text-slate-400">
-            Everything your security team needs — compliance scores, risk register,
-            department tracking, and audit logs — in one unified workspace.
+            An illustrative concept for a future security workspace. The scores, risks, departments,
+            and recommendations shown below are sample data, not live CyberGuard features or customer records.
           </p>
         </div>
 
@@ -84,13 +84,16 @@ export function DashboardPreview() {
           <div className="absolute inset-0 rounded-3xl glow-brand pointer-events-none" aria-hidden />
 
           <div className="relative rounded-2xl border border-surface-700/60 bg-surface-900/90 backdrop-blur-sm overflow-hidden shadow-card">
+            <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2 text-center text-xs font-medium text-amber-300">
+              Illustrative mockup — sample data; not a screenshot of the current application
+            </div>
             {/* Window chrome */}
             <div className="flex items-center gap-1.5 border-b border-surface-700/50 bg-surface-950/80 px-4 py-3">
               <span className="h-3 w-3 rounded-full bg-rose-500/60" />
               <span className="h-3 w-3 rounded-full bg-amber-500/60" />
               <span className="h-3 w-3 rounded-full bg-accent-500/60" />
               <span className="ml-3 rounded-md bg-surface-800 px-3 h-5 text-[10px] text-slate-500 flex items-center">
-                app.cyberguard.io/dashboard
+                illustrative.preview/dashboard
               </span>
               <div className="ml-auto flex gap-1.5">
                 <Bell className="h-3.5 w-3.5 text-slate-500" />
@@ -112,7 +115,7 @@ export function DashboardPreview() {
                     <p className="text-xs text-slate-500">Your compliance snapshot for today</p>
                   </div>
                   <span className="flex items-center gap-1.5 rounded-full bg-accent-500/10 border border-accent-500/20 px-3 py-1 text-xs text-accent-400 font-medium">
-                    <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> SOC 2 Active
+                    <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Example framework
                   </span>
                 </div>
 

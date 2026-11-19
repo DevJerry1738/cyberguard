@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { getSecurityDomains } from '@/features/security-domains/actions/security-domains';
 import { CreateTemplateWizard } from '@/features/assessments/components/CreateTemplateWizard';
+import { listApprovedAssessmentPacks } from '@/features/assessments/actions/packs';
 
 export const metadata: Metadata = {
   title: 'Create Assessment Template',
@@ -42,6 +43,7 @@ export default async function NewTemplatePage() {
 
   // Fetch active domains to select from in the wizard
   const domains = await getSecurityDomains(false);
+  const packs = await listApprovedAssessmentPacks();
 
   return (
     <div className="flex-1 px-6 py-8 lg:px-10 max-w-7xl mx-auto w-full space-y-6">
@@ -49,7 +51,11 @@ export default async function NewTemplatePage() {
         title="Create Assessment Blueprint"
         description="Build a reusable framework by selecting security domains and metadata."
       />
-      <CreateTemplateWizard domains={domains} />
+      <CreateTemplateWizard
+        domains={domains}
+        packs={packs}
+        canCreateDomains={['Owner', 'Admin'].includes(userRole)}
+      />
     </div>
   );
 }

@@ -1,19 +1,19 @@
-# Project Backlog & Roadmap
+# Project Backlog & Issue Register
 
-This document outlines the master sprint backlog for the CyberGuard project.
+This document is the canonical source for Sprint 0–7 issue IDs and titles. Current implementation status, acceptance evidence, and verification confidence are maintained in the [project completion plan](../project-completion-plan.md#sprint-0-7-issue-status-and-evidence). Do not infer that an issue is Done from code presence alone.
 
 ---
 
-## Sprint 0: Foundation Initialization (Current)
+## Sprint 0: Foundation Initialization
 
 | Issue ID | Title | Status |
 |---|---|---|
-| **CG-001** | Initialize single-repo Next.js 15 project base structure | **Completed** |
-| **CG-002** | Create root-level linting/formatting configs (ESLint, Prettier, Husky, Commitlint) | **Completed** |
-| **CG-003** | Write RLS isolation rules and design DB helper functions | **Completed** |
-| **CG-004** | Draft system architectural specifications and ADR guides | **Completed** |
-| **CG-005** | Define Product Requirements Document (PRD) and ER Diagrams | **Completed** |
-| **CG-006** | Setup GitHub Actions CI validation workflows | **Completed** |
+| **CG-001** | Initialize single-repo Next.js 15 project base structure |
+| **CG-002** | Create root-level linting/formatting configs (ESLint, Prettier, Husky, Commitlint) |
+| **CG-003** | Write RLS isolation rules and design DB helper functions |
+| **CG-004** | Draft system architectural specifications and ADR guides |
+| **CG-005** | Define Product Requirements Document (PRD) and ER Diagrams |
+| **CG-006** | Set up GitHub Actions CI validation workflow for the actual app |
 
 ---
 
@@ -64,6 +64,7 @@ This document outlines the master sprint backlog for the CyberGuard project.
 
 - **CG-601**: Configure Supabase MFA redirection flows on administrative routes.
 - **CG-602**: Execute multi-tenant boundary automated security tests.
+- **CG-603**: Configure and verify secure HTTP response headers.
 
 ---
 
@@ -72,4 +73,15 @@ This document outlines the master sprint backlog for the CyberGuard project.
 - **CG-701**: Configure Next.js Vercel builds environment variables.
 - **CG-702**: Release production database migrations to Live Supabase instance.
 - **CG-703**: Setup Custom Domain name bindings and SSL certificates.
+
+---
+
+## Status policy
+
+- **Done**: acceptance criteria are evidenced and verified.
+- **Partial**: implementation exists, but acceptance criteria or verification remain incomplete.
+- **Blocked**: progress depends on an external decision, credential, environment, or owner confirmation.
+- **Not started**: no implementation evidence has been identified.
+
+See the [issue-level status and evidence matrix](../project-completion-plan.md#sprint-0-7-issue-status-and-evidence). Sprints 8–9 (cloud posture monitoring and AI recommendations) remain future roadmap items from the [PRD](prd.md), not part of this Sprint 0–7 release scope.
 

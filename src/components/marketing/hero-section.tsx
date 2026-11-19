@@ -41,13 +41,19 @@ function DashboardIllustration() {
 
       {/* Main frame */}
       <div className="relative rounded-2xl border border-surface-700/60 bg-surface-900/80 backdrop-blur-sm overflow-hidden shadow-card">
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-center text-[10px] font-medium text-amber-300">
+          Illustrative mockup — sample metrics, not live product data
+        </div>
+        <div className="border-b border-amber-500/20 bg-amber-500/5 px-4 py-2 text-center text-xs font-medium text-amber-300">
+          Illustrative mockup — sample metrics and alerts, not live product data
+        </div>
         {/* Fake window chrome */}
         <div className="flex items-center gap-1.5 border-b border-surface-700/60 px-4 py-3 bg-surface-950/60">
           <span className="h-3 w-3 rounded-full bg-rose-500/70" />
           <span className="h-3 w-3 rounded-full bg-amber-500/70" />
           <span className="h-3 w-3 rounded-full bg-accent-500/70" />
           <span className="ml-3 flex-1 rounded-md bg-surface-800 h-5 text-[10px] text-slate-500 flex items-center px-3">
-            app.cyberguard.io/dashboard
+            illustrative.preview/dashboard
           </span>
         </div>
 
@@ -144,7 +150,7 @@ export function HeroSection() {
         <div className="inline-flex items-center gap-2 animate-fade-in">
           <Badge variant="brand" className="text-xs py-1 px-3">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" aria-hidden />
-            Now in Public Beta
+            Assessment workspace
           </Badge>
         </div>
 
@@ -164,9 +170,8 @@ export function HeroSection() {
           className="text-lg sm:text-xl text-slate-400 leading-relaxed max-w-2xl animate-fade-up"
           style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" }}
         >
-          CyberGuard gives your team a unified platform to assess security posture,
-          track compliance frameworks, manage risks, and generate audit-ready reports —
-          without the complexity of enterprise tools.
+          CyberGuard helps your team organize cybersecurity assessments, manage templates,
+          invite collaborators, and track assessment progress in one workspace.
         </p>
 
         {/* CTAs */}
@@ -176,16 +181,16 @@ export function HeroSection() {
         >
           <Link href="/register">
             <Button size="lg" variant="primary" className="gap-2 pl-6 pr-5">
-              Start Free Assessment
+              Create a workspace
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </Link>
-          <button className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-slate-300 hover:text-white transition-colors text-base font-medium group">
+          <Link href="/contact" className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-slate-300 hover:text-white transition-colors text-base font-medium group">
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-700 bg-surface-800 group-hover:border-brand-500/40 group-hover:bg-brand-500/10 transition-all">
               <Play className="h-3.5 w-3.5 ml-0.5 text-brand-400" aria-hidden />
             </span>
-            Watch Demo
-          </button>
+            Contact the team
+          </Link>
         </div>
 
         {/* Trust indicators */}
@@ -193,7 +198,7 @@ export function HeroSection() {
           className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 animate-fade-up"
           style={{ animationDelay: "0.4s", opacity: 0, animationFillMode: "forwards" }}
         >
-          {["No credit card required", "SOC 2 Type II compliant", "GDPR ready", "14-day free trial"].map((t) => (
+          {["Assessment templates", "Draft and resume", "Organization roles", "Supabase-backed workspace"].map((t) => (
             <span key={t} className="flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-accent-500" aria-hidden />
               {t}

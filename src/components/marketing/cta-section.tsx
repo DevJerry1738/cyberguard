@@ -20,27 +20,26 @@ export function CTASection() {
               Start your security journey with confidence
             </h2>
             <p className="text-lg text-slate-400 mb-8 leading-relaxed">
-              Join forward-thinking security teams who are using CyberGuard to build
-              measurable, audit-ready compliance programmes — without the enterprise price tag.
+              Create an organization workspace and explore structured assessment templates and progress tracking.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register">
                 <Button size="xl" variant="primary" className="gap-2">
-                  Start Free Assessment
+                  Create a workspace
                   <ArrowRight className="h-5 w-5" aria-hidden />
                 </Button>
               </Link>
               <Link href="/contact">
                 <Button size="xl" variant="secondary" className="gap-2">
                   <Calendar className="h-4 w-4" aria-hidden />
-                  Schedule a Demo
+                  Contact the team
                 </Button>
               </Link>
             </div>
 
             <p className="mt-6 text-xs text-slate-500">
-              No credit card required &bull; 14-day free trial &bull; Cancel anytime
+              Current product scope and commercial terms are subject to confirmation.
             </p>
           </div>
         </div>

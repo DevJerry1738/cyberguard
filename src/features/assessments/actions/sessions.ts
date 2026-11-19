@@ -8,6 +8,7 @@ import {
   type AssessmentSession,
   type AssessmentSessionInput,
 } from '../schemas/session';
+import { AssessmentSnapshotSchema } from '../schemas/snapshot';
 
 async function getOrgContext() {
   const supabase = await createClient();
@@ -221,7 +222,7 @@ export async function createAssessmentSession(
   const { data: templateQuestions, error: templateQuestionsError } = await supabase
     .from('assessment_questions')
     .select(
-      '*, options:assessment_question_options(id, label, value, sort_order, created_at, question_id)'
+      '*, options:assessment_question_options(id, label, value, sort_order, created_at, question_id), controls:assessment_question_controls(framework_control_id, framework_key_at_mapping, framework_name_at_mapping, framework_version_at_mapping, control_identifier_at_mapping, mapping_source, source_reference, review_status)'
     )
     .eq('template_id', templateId)
     .eq('organization_id', organizationId)
@@ -233,6 +234,7 @@ export async function createAssessmentSession(
   }
 
   const snapshot = {
+    snapshot_schema_version: 2,
     id: template.id,
     name: template.name,
     version: template.version,
@@ -261,8 +263,27 @@ export async function createAssessmentSession(
       deleted_at: question.deleted_at,
       deleted_by: question.deleted_by,
       options: (question.options ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+      source_pack_id: question.source_pack_id ?? null,
+      source_pack_version_id: question.source_pack_version_id ?? null,
+      source_pack_question_id: question.source_pack_question_id ?? null,
+      controls: (question.controls ?? []).map((mapping: any) => ({
+        framework_control_id: mapping.framework_control_id,
+        framework_key: mapping.framework_key_at_mapping,
+        framework_name: mapping.framework_name_at_mapping,
+        framework_version: mapping.framework_version_at_mapping,
+        control_identifier: mapping.control_identifier_at_mapping,
+        mapping_source: mapping.mapping_source ?? null,
+        source_reference: mapping.source_reference ?? null,
+        review_status: mapping.review_status ?? 'pending',
+      })),
     })),
   };
+
+  const snapshotValidation = AssessmentSnapshotSchema.safeParse(snapshot);
+  if (!snapshotValidation.success) {
+    console.error('Assessment snapshot validation failed:', snapshotValidation.error.issues);
+    return { success: false, error: 'Failed to validate the assessment snapshot' };
+  }
 
   const validation = AssessmentSessionSchema.safeParse({
     template_id: template.id,
@@ -287,7 +308,7 @@ export async function createAssessmentSession(
       template_name: template.name,
       template_version: template.version,
       template_framework: template.framework,
-      template_snapshot: snapshot,
+      template_snapshot: snapshotValidation.data,
       status: 'In Progress',
       progress_percent: 0,
       started_by: user.id,

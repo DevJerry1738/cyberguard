@@ -1,21 +1,28 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, Shield, Layers, HelpCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { createAssessmentTemplate } from '../actions/templates';
+import { importAssessmentPack, type ApprovedAssessmentPack } from '../actions/packs';
 import { FrameworksList } from '../schemas/template';
 import type { SecurityDomain } from '@/features/security-domains/schemas/security-domain';
 
 interface CreateTemplateWizardProps {
   domains: SecurityDomain[];
+  packs: ApprovedAssessmentPack[];
+  canCreateDomains: boolean;
 }
 
-export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
+export function CreateTemplateWizard({ domains, packs, canCreateDomains }: CreateTemplateWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [templateSource, setTemplateSource] = useState<'blank' | 'pack'>('blank');
+  const [selectedPackId, setSelectedPackId] = useState('');
+  const [packDomainMappings, setPackDomainMappings] = useState<Record<string, string>>({});
+  const importRequestRef = useRef<{ fingerprint: string; key: string } | null>(null);
 
   // Form Fields
   const [name, setName] = useState('');
@@ -38,6 +45,20 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
   };
 
   const validateStep2 = () => {
+    if (templateSource === 'pack') {
+      const pack = packs.find(item => item.id === selectedPackId);
+      if (!pack) return 'Select an approved assessment pack';
+      if (pack.domains.length === 0 || pack.domains.every(domain => domain.questionCount === 0)) {
+        return 'The selected pack has no importable content';
+      }
+      if (pack.domains.some(domain => !packDomainMappings[domain.id])) {
+        return 'Map every pack domain to an organization domain or choose to create it';
+      }
+      if (!canCreateDomains && pack.domains.some(domain => packDomainMappings[domain.id] === 'create-new')) {
+        return 'Only Owners and Admins can create organization domains during import';
+      }
+      return null;
+    }
     if (selectedDomains.length === 0) return 'At least one security domain must be assigned';
     return null;
   };
@@ -48,6 +69,10 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
       const err = validateStep1();
       if (err) {
         setError(err);
+        return;
+      }
+      if (templateSource === 'pack' && !selectedPackId) {
+        setError('Select an approved assessment pack');
         return;
       }
       setStep(2);
@@ -77,6 +102,46 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
     const finalFramework = framework === 'Custom' ? customFramework.trim() : framework;
 
     startTransition(async () => {
+      if (templateSource === 'pack') {
+        const pack = packs.find(item => item.id === selectedPackId);
+        if (!pack) {
+          setError('The selected assessment pack is no longer available');
+          return;
+        }
+
+        const domainMappings = pack.domains.map(domain => {
+          const selection = packDomainMappings[domain.id];
+          return {
+            packDomainId: domain.id,
+            securityDomainId: selection === 'create-new' ? null : selection,
+            createDomain: selection === 'create-new',
+          };
+        });
+        const request = {
+          packVersionId: pack.id,
+          name: name.trim(),
+          description: description.trim() || null,
+          templateVersion: version.trim(),
+          domainMappings,
+        };
+        const fingerprint = JSON.stringify(request);
+        if (!importRequestRef.current || importRequestRef.current.fingerprint !== fingerprint) {
+          importRequestRef.current = { fingerprint, key: crypto.randomUUID() };
+        }
+
+        const result = await importAssessmentPack({
+          ...request,
+          idempotencyKey: importRequestRef.current.key,
+        });
+        if (result.success && result.templateId) {
+          router.push(`/assessments/templates/${result.templateId}`);
+          router.refresh();
+        } else {
+          setError(result.error ?? 'Failed to import assessment pack');
+        }
+        return;
+      }
+
       const result = await createAssessmentTemplate(
         {
           name: name.trim(),
@@ -127,7 +192,7 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
 
       {/* Error message */}
       {error && (
-        <div className="mb-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-400 border border-red-500/20 flex gap-3 items-center">
+        <div role="alert" aria-live="assertive" className="mb-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-400 border border-red-500/20 flex gap-3 items-center">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -141,6 +206,64 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
               <h3 className="font-display text-lg font-bold text-white mb-1">Basic Template Information</h3>
               <p className="text-sm text-slate-400">Define the blueprint name, compliant framework, and version.</p>
             </div>
+
+            <fieldset className="space-y-3">
+              <legend className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                Template starting point
+              </legend>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className={`cursor-pointer rounded-xl border p-4 ${templateSource === 'blank' ? 'border-brand-500 bg-brand-500/10' : 'border-surface-800 bg-surface-900/40'}`}>
+                  <input
+                    type="radio"
+                    name="template-source"
+                    value="blank"
+                    checked={templateSource === 'blank'}
+                    onChange={() => setTemplateSource('blank')}
+                    className="sr-only"
+                  />
+                  <span className="block text-sm font-semibold text-white">Start blank</span>
+                  <span className="mt-1 block text-xs text-slate-400">Create a template and add your own questions.</span>
+                </label>
+                <label className={`rounded-xl border p-4 ${packs.length ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} ${templateSource === 'pack' ? 'border-brand-500 bg-brand-500/10' : 'border-surface-800 bg-surface-900/40'}`}>
+                  <input
+                    type="radio"
+                    name="template-source"
+                    value="pack"
+                    checked={templateSource === 'pack'}
+                    onChange={() => setTemplateSource('pack')}
+                    disabled={packs.length === 0}
+                    className="sr-only"
+                  />
+                  <span className="block text-sm font-semibold text-white">Start from an approved pack</span>
+                  <span className="mt-1 block text-xs text-slate-400">
+                    {packs.length ? 'Import a reviewed pack as an editable copy.' : 'No approved packs are currently available.'}
+                  </span>
+                </label>
+              </div>
+              {templateSource === 'pack' && packs.length > 0 && (
+                <div>
+                  <label htmlFor="assessment-pack" className="mb-1.5 block text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                    Approved pack
+                  </label>
+                  <select
+                    id="assessment-pack"
+                    value={selectedPackId}
+                    onChange={event => {
+                      setSelectedPackId(event.target.value);
+                      setPackDomainMappings({});
+                      const selectedPack = packs.find(pack => pack.id === event.target.value);
+                      if (selectedPack) setFramework(selectedPack.name);
+                    }}
+                    className="w-full rounded-xl border border-surface-700 bg-surface-800/40 px-3.5 py-2.5 text-sm text-white"
+                  >
+                    <option value="">Choose a pack</option>
+                    {packs.map(pack => (
+                      <option key={pack.id} value={pack.id}>{pack.name} — v{pack.versionLabel}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </fieldset>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div className="sm:col-span-2">
@@ -163,6 +286,7 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
                 <select
                   value={framework}
                   onChange={e => setFramework(e.target.value)}
+                  disabled={templateSource === 'pack'}
                   className="w-full rounded-xl border border-surface-700 bg-surface-800/40 px-3.5 py-2.5 text-sm text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-all"
                 >
                   {FrameworksList.map(fw => (
@@ -186,7 +310,7 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
                 />
               </div>
 
-              {framework === 'Custom' && (
+                  {framework === 'Custom' && templateSource === 'blank' && (
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
                     Custom Framework Name
@@ -223,11 +347,38 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <h3 className="font-display text-lg font-bold text-white mb-1">Select Security Domains</h3>
-              <p className="text-sm text-slate-400">Choose which categories from the assessment engine will belong to this template.</p>
+              <h3 className="font-display text-lg font-bold text-white mb-1">{templateSource === 'pack' ? 'Map Pack Domains' : 'Select Security Domains'}</h3>
+              <p className="text-sm text-slate-400">{templateSource === 'pack' ? 'Explicitly map each pack category to one of your organization’s domains, or create a new domain if permitted.' : 'Choose which categories from the assessment engine will belong to this template.'}</p>
             </div>
 
-            {domains.length === 0 ? (
+            {templateSource === 'pack' ? (
+              <div className="space-y-4">
+                {packs.find(item => item.id === selectedPackId)?.domains.map(domain => (
+                  <div key={domain.id} className="grid gap-3 rounded-xl border border-surface-800 bg-surface-900/40 p-4 sm:grid-cols-[1fr_1.2fr] sm:items-center">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{domain.name}</p>
+                      <p className="mt-1 text-xs text-slate-400">{domain.questionCount} questions · {domain.description || 'No description'}</p>
+                    </div>
+                    <label className="sr-only" htmlFor={`pack-domain-${domain.id}`}>Map {domain.name}</label>
+                    <select
+                      id={`pack-domain-${domain.id}`}
+                      value={packDomainMappings[domain.id] ?? ''}
+                      onChange={event => setPackDomainMappings(current => ({ ...current, [domain.id]: event.target.value }))}
+                      className="w-full rounded-xl border border-surface-700 bg-surface-800/40 px-3.5 py-2.5 text-sm text-white"
+                    >
+                      <option value="">Choose organization domain</option>
+                      {domains.map(domainOption => (
+                        <option key={domainOption.id} value={domainOption.id}>{domainOption.name}</option>
+                      ))}
+                      {canCreateDomains && <option value="create-new">Create “{domain.name}” in my organization</option>}
+                    </select>
+                  </div>
+                ))}
+                {selectedPackId && packs.find(item => item.id === selectedPackId)?.domains.length === 0 && (
+                  <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">This approved pack has no domains and cannot be imported.</p>
+                )}
+              </div>
+            ) : domains.length === 0 ? (
               <div className="text-center py-8 border border-dashed border-surface-800 rounded-xl">
                 <Layers className="h-8 w-8 text-slate-500 mx-auto mb-2" />
                 <p className="text-sm text-slate-400">No active security domains found.</p>
@@ -296,23 +447,55 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
                     {description || <span className="italic text-slate-650">No description provided</span>}
                   </p>
                 </div>
+                {templateSource === 'pack' && (
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">SOURCE PACK</p>
+                    <p className="font-semibold text-white mt-0.5">
+                      {packs.find(item => item.id === selectedPackId)?.name} — v{packs.find(item => item.id === selectedPackId)?.versionLabel}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Source: {packs.find(item => item.id === selectedPackId)?.sourceName}
+                      {packs.find(item => item.id === selectedPackId)?.sourceReference
+                        ? ` · ${packs.find(item => item.id === selectedPackId)?.sourceReference}`
+                        : ''}
+                    </p>
+                    {packs.find(item => item.id === selectedPackId)?.attribution && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        {packs.find(item => item.id === selectedPackId)?.attribution}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-slate-400">
+                      Usage: {packs.find(item => item.id === selectedPackId)?.usageTerms}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-300">
+                      Imported questions become an independent organization-owned copy.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
               <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
-                ASSIGNED DOMAINS ({selectedDomains.length})
+                {templateSource === 'pack' ? 'PACK DOMAIN MAPPINGS' : `ASSIGNED DOMAINS (${selectedDomains.length})`}
               </p>
               <div className="flex flex-wrap gap-2">
-                {selectedDomains.map(id => {
-                  const dom = domains.find(d => d.id === id);
+                {(templateSource === 'pack'
+                  ? packs.find(item => item.id === selectedPackId)?.domains.map(domain => ({
+                    id: domain.id,
+                    label: packDomainMappings[domain.id] === 'create-new'
+                      ? `${domain.name} (new domain)`
+                      : domains.find(item => item.id === packDomainMappings[domain.id])?.name ?? `${domain.name} (unmapped)`,
+                  })) ?? []
+                  : selectedDomains.map(id => ({ id, label: domains.find(domain => domain.id === id)?.name ?? '' }))
+                ).map(item => {
                   return (
                     <span
-                      key={id}
+                      key={item.id}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-brand-500/20 bg-brand-500/5 text-xs text-brand-300 font-medium"
                     >
                       <Shield className="h-3.5 w-3.5 text-brand-400" />
-                      {dom?.name}
+                      {item.label}
                     </span>
                   );
                 })}
@@ -352,7 +535,7 @@ export function CreateTemplateWizard({ domains }: CreateTemplateWizardProps) {
               {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Creating...
+                  {templateSource === 'pack' ? 'Importing pack...' : 'Creating...'}
                 </>
               ) : (
                 <>

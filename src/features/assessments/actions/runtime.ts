@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import type { AssessmentQuestion, QuestionOption, QuestionsByDomain } from '../schemas/question';
 import type { AssessmentSession } from '../schemas/session';
+import { AssessmentSnapshotSchema } from '../schemas/snapshot';
 
 /**
  * Calculates the answered-required percentage directly from a snapshot JSON
@@ -33,6 +34,7 @@ function calcProgressFromSnapshot(
 }
 
 export interface AssessmentRuntimeSnapshot {
+  snapshot_schema_version?: number;
   id: string;
   name: string;
   version: string;
@@ -244,10 +246,23 @@ function normalizeSnapshot(snapshot: Record<string, unknown> | null | undefined)
 
   const questions = (rawQuestions as Array<Record<string, unknown>>).map(question => ({
     ...(question as unknown as AssessmentQuestion),
+    source_pack_id: typeof question.source_pack_id === 'string'
+      ? question.source_pack_id
+      : null,
+    source_pack_version_id: typeof question.source_pack_version_id === 'string'
+      ? question.source_pack_version_id
+      : null,
+    source_pack_question_id: typeof question.source_pack_question_id === 'string'
+      ? question.source_pack_question_id
+      : null,
+    controls: Array.isArray(question.controls) ? question.controls : [],
     options: normalizeOptions(question.options),
   })) as AssessmentQuestion[];
 
   return {
+    ...(typeof snapshot?.snapshot_schema_version === 'number'
+      ? { snapshot_schema_version: snapshot.snapshot_schema_version }
+      : {}),
     id: String(snapshot?.id ?? ''),
     name: String(snapshot?.name ?? ''),
     version: String(snapshot?.version ?? ''),
@@ -292,7 +307,16 @@ export async function getAssessmentRuntime(sessionId: string): Promise<Assessmen
   const hasAccess = await canAccessSession(supabase, user.id, effectiveOrgId, sessionId);
   if (!hasAccess && user.id !== session.started_by) return null;
 
-  let snapshot = normalizeSnapshot((session.template_snapshot as Record<string, unknown>) ?? null);
+  const rawSnapshot = (session.template_snapshot as Record<string, unknown>) ?? null;
+  if (rawSnapshot?.snapshot_schema_version === 2) {
+    const snapshotValidation = AssessmentSnapshotSchema.safeParse(rawSnapshot);
+    if (!snapshotValidation.success) {
+      console.error('Stored assessment snapshot v2 is invalid:', snapshotValidation.error.issues);
+      return null;
+    }
+  }
+
+  let snapshot = normalizeSnapshot(rawSnapshot);
 
   // Fallback: if snapshot is empty, load from template definition (for sessions created before snapshot capture)
   if (snapshot.questions.length === 0) {
@@ -304,7 +328,7 @@ export async function getAssessmentRuntime(sessionId: string): Promise<Assessmen
 
     let templateQuestionsQuery = supabase
       .from('assessment_questions')
-      .select('*, options:assessment_question_options(id, label, value, sort_order, created_at, question_id)')
+      .select('*, options:assessment_question_options(id, label, value, sort_order, created_at, question_id), controls:assessment_question_controls(framework_control_id, framework_key_at_mapping, framework_name_at_mapping, framework_version_at_mapping, control_identifier_at_mapping, mapping_source, source_reference, review_status)')
       .eq('template_id', session.template_id)
       .is('deleted_at', null)
       .order('sort_order', { ascending: true });
@@ -317,6 +341,7 @@ export async function getAssessmentRuntime(sessionId: string): Promise<Assessmen
 
     if (!templateDomainsError && !templateQuestionsError) {
       snapshot = {
+        snapshot_schema_version: 2,
         id: session.template_id,
         name: session.template_name,
         version: session.template_version,
@@ -345,6 +370,19 @@ export async function getAssessmentRuntime(sessionId: string): Promise<Assessmen
           deleted_at: question.deleted_at,
           deleted_by: question.deleted_by,
           options: (question.options ?? []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+          source_pack_id: question.source_pack_id ?? null,
+          source_pack_version_id: question.source_pack_version_id ?? null,
+          source_pack_question_id: question.source_pack_question_id ?? null,
+          controls: (question.controls ?? []).map((mapping: any) => ({
+            framework_control_id: mapping.framework_control_id,
+            framework_key: mapping.framework_key_at_mapping,
+            framework_name: mapping.framework_name_at_mapping,
+            framework_version: mapping.framework_version_at_mapping,
+            control_identifier: mapping.control_identifier_at_mapping,
+            mapping_source: mapping.mapping_source ?? null,
+            source_reference: mapping.source_reference ?? null,
+            review_status: mapping.review_status ?? 'pending',
+          })),
         })),
       };
 

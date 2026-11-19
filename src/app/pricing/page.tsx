@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Transparent, per-organisation pricing for security teams of every size. CyberGuard pricing plans coming soon.",
+  description: "CyberGuard pricing and plan details are not yet available.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -18,46 +18,38 @@ const plans = [
     highlight: false,
     badge: null,
     features: [
-      "Up to 10 team members",
-      "1 compliance framework",
-      "Basic risk register",
-      "Standard assessments",
-      "PDF report export",
-      "Email support",
+      "Assessment templates — planned availability varies",
+      "Organization and assessment workflows",
+      "Risk register — planned, not currently available",
+      "PDF report export — planned, not currently available",
+      "Plan limits and support terms to be announced",
     ],
   },
   {
     name: "Professional",
     tagline: "For growing security programmes",
-    price: "Coming Soon",
-    highlight: true,
-    badge: "Most Popular",
+    price: "To be announced",
+    highlight: false,
+    badge: null,
     features: [
-      "Unlimited team members",
-      "All compliance frameworks",
-      "Advanced risk scoring",
-      "Evidence upload & storage",
-      "Audit-ready report suite",
-      "Department management",
-      "Immutable audit logs",
-      "Priority support",
+      "Plan features and limits to be announced",
+      "Risk scoring — planned, not currently available",
+      "Evidence upload — planned, not currently available",
+      "Report suite — planned, not currently available",
+      "Department management is present in the application",
+      "Audit immutability and support terms require confirmation",
     ],
   },
   {
     name: "Enterprise",
-    tagline: "For complex multi-tenant organisations",
-    price: "Custom",
+    tagline: "Plan details to be announced",
+    price: "To be announced",
     highlight: false,
     badge: null,
     features: [
-      "Everything in Professional",
-      "Custom compliance frameworks",
-      "Dedicated customer success",
-      "SLA guarantee",
-      "SSO & advanced RBAC",
-      "API access",
-      "On-boarding & training",
-      "Custom data retention",
+      "Enterprise plan details to be announced",
+      "Custom frameworks, SSO, APIs, and SLAs are not currently confirmed",
+      "Support, onboarding, and retention terms require confirmation",
     ],
   },
 ];
@@ -75,11 +67,11 @@ export default function PricingPage() {
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-slate-400 mb-4">
-            Priced per organisation, not per seat. Grow your team without growing your bill.
+            Pricing, plan limits, and commercial terms have not been finalized. Contact the project team for current availability.
           </p>
           <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-4 py-2 text-sm text-amber-400 font-medium">
             <Zap className="h-4 w-4" aria-hidden />
-            Pricing launches with Sprint 2 — join the waitlist to get early access pricing.
+            Pricing is not currently available for purchase; plan details shown below are indicative roadmap placeholders.
           </div>
         </div>
       </section>
@@ -111,9 +103,7 @@ export default function PricingPage() {
 
               <div className="mb-8">
                 <p className="font-display text-3xl font-bold text-white">{price}</p>
-                {price !== "Custom" && (
-                  <p className="text-xs text-slate-500 mt-1">Pricing announced soon</p>
-                )}
+                <p className="text-xs text-slate-500 mt-1">Pricing announced soon</p>
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
@@ -125,13 +115,13 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <Link href={name === "Enterprise" ? "/contact" : "/register"}>
+              <Link href="/contact">
                 <Button
                   variant={highlight ? "primary" : "secondary"}
                   size="md"
                   className="w-full gap-2"
                 >
-                  {name === "Enterprise" ? "Contact Sales" : "Get Early Access"}
+                  Contact the team
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Button>
               </Link>
@@ -143,10 +133,10 @@ export default function PricingPage() {
         <div className="container-wide max-w-2xl mx-auto mt-16 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
             <ShieldCheck className="h-5 w-5 text-accent-400" aria-hidden />
-            <p className="font-semibold text-white">30-day money-back guarantee</p>
+              <p className="font-semibold text-white">Commercial terms pending</p>
           </div>
           <p className="text-sm text-slate-500">
-            Not happy in your first 30 days? We&rsquo;ll refund you in full — no questions asked.
+            Refunds, cancellation, and service terms require confirmation by the project team before purchase.
           </p>
         </div>
       </section>

@@ -335,11 +335,42 @@ export async function saveAssessmentDraft(
         updated_at: lastSavedAt,
       })
       .eq('id', currentServerDraft.id)
+      .eq('version', currentServerDraft.version)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       return { success: false, error: updateError.message };
+    }
+
+    if (!updatedDraft) {
+      const { data: latestDraft } = await supabase
+        .from('assessment_drafts')
+        .select('*')
+        .eq('id', currentServerDraft.id)
+        .maybeSingle();
+
+      if (latestDraft) {
+        await supabase.from('audit_logs').insert({
+          organization_id: organizationId,
+          profile_id: user.id,
+          action: 'assessment.draft.conflict_detected',
+          details: {
+            session_id: input.sessionId,
+            client_version: input.version,
+            server_version: latestDraft.version,
+          },
+        });
+
+        return {
+          success: false,
+          conflict: true,
+          serverDraft: latestDraft as AssessmentDraftRecord,
+          error: 'Conflict detected: A newer version of this draft exists.',
+        };
+      }
+
+      return { success: false, error: 'Draft was removed before it could be saved.' };
     }
 
     // Also sync progress back to assessment_sessions table for compatibility.

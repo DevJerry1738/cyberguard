@@ -3,39 +3,39 @@ import { Lock, ShieldCheck, FileKey2, UserCheck, ServerCrash, Eye } from "lucide
 const pillars = [
   {
     Icon: Lock,
-    title: "End-to-End Encryption",
+    title: "Protected connections",
     description:
-      "All data is encrypted in transit with TLS 1.3 and at rest using AES-256. Your compliance data never leaves our secured infrastructure unencrypted.",
+      "CyberGuard uses Supabase services for authentication and data access. Confirm the hosting environment's encryption and data-residency details with the project team.",
   },
   {
     Icon: UserCheck,
     title: "Role-Based Access Control",
     description:
-      "Granular RBAC ensures team members only access the data they're authorised to see. Permissions cascade by role, department, and organisation scope.",
+      "The application defines organization roles and uses database policies. Complete policy coverage and role boundaries must be verified before relying on them for a specific workflow.",
   },
   {
     Icon: Eye,
-    title: "Immutable Audit Trails",
+    title: "Activity records",
     description:
-      "Every action in CyberGuard is logged in a tamper-proof audit log. Prove accountability to regulators, auditors, and internal stakeholders.",
+      "Selected organization and assessment actions create audit-log records. Append-only enforcement and a full audit review/export experience are not yet verified.",
   },
   {
     Icon: FileKey2,
-    title: "Secure Authentication",
+    title: "Authentication",
     description:
-      "Multi-factor authentication, secure session management, and automatic token rotation protect every user account on the platform.",
+      "Authentication is provided through Supabase Auth. Mandatory multi-factor authentication for administrative roles is planned and not currently evidenced as enforced.",
   },
   {
     Icon: ShieldCheck,
-    title: "Compliance-Ready Architecture",
+    title: "Security review in progress",
     description:
-      "Our infrastructure is designed around SOC 2 Type II, ISO 27001, and GDPR principles, so your security posture starts strong on day one.",
+      "Security architecture and row-level security guidance are documented. No CyberGuard certification or compliance attestation is claimed by this page.",
   },
   {
     Icon: ServerCrash,
-    title: "Zero Trust Principles",
+    title: "Request-level access checks",
     description:
-      "Access is never assumed, always verified. Every request is authenticated and authorised against up-to-date policies, regardless of network origin.",
+      "Protected application routes and server actions use authentication and authorization checks. Coverage is being validated across routes and database policies.",
   },
 ];
 
@@ -53,15 +53,13 @@ export function SecuritySection() {
         <div className="max-w-2xl mx-auto text-center mb-16">
           <p className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-3">Security First</p>
           <h2 id="security-heading" className="font-display text-4xl sm:text-5xl font-bold text-white mb-4">
-            Built secure from the{" "}
+            Security built into the design{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent-400 to-brand-400">
               ground up
             </span>
           </h2>
           <p className="text-lg text-slate-400 leading-relaxed">
-            We hold ourselves to the same standards we help you achieve.
-            CyberGuard's infrastructure, codebase, and processes are built with security as the
-            foundation — not an afterthought.
+            Security requirements are part of the product design. Controls, environment configuration, and compliance claims must be verified before production use.
           </p>
         </div>
 
@@ -83,7 +81,7 @@ export function SecuritySection() {
 
         {/* Certifications bar */}
         <div className="mt-14 flex flex-wrap items-center justify-center gap-4">
-          {["SOC 2 Type II", "ISO 27001", "GDPR Compliant", "NIST CSF", "HIPAA Ready"].map((cert) => (
+          {["Supabase Auth", "Postgres RLS", "Role-aware application", "Security review ongoing"].map((cert) => (
             <span
               key={cert}
               className="flex items-center gap-2 rounded-full border border-accent-500/20 bg-accent-500/5 px-4 py-2 text-xs font-semibold text-accent-400"

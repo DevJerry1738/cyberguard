@@ -1,6 +1,8 @@
 # Feature Breakdown (Epics & Stories)
 
-This document breaks down the product roadmap into structured Epics and user stories for implementation tracking.
+> **Historical requirements reference, not the current issue tracker.** The story IDs and acceptance criteria below predate the canonical Sprint 0–7 backlog and conflict with its identifiers in places. Use [sprint-backlog.md](sprint-backlog.md) for canonical issue IDs and [project-completion-plan.md](../project-completion-plan.md#sprint-0-7-issue-status-and-evidence) for current implementation status and evidence. Acceptance criteria in this document are target requirements only; they are not evidence that a feature is implemented or tested.
+
+This document preserves the original product-story intent for reference. Reconcile any requirements retained for the MVP into the canonical backlog before treating them as release commitments.
 
 ---
 

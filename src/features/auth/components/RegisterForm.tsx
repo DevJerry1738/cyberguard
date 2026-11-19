@@ -93,7 +93,7 @@ export default function RegisterForm() {
       {serverError && <p className="text-xs text-rose-400">{serverError}</p>}
 
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
-        {loading ? 'Creating account...' : 'Create Free Account'}
+        {loading ? 'Creating account...' : 'Create Account'}
       </Button>
     </form>
   );

@@ -42,7 +42,8 @@ This boots Docker containers locally representing the Supabase environment (DB, 
 
 ---
 
-## 3. Storage Buckets Config
+## 3. Planned Storage Buckets
+The buckets below are target design requirements. Their presence and policies must be confirmed in migrations or the Supabase dashboard; the current repository review did not find an `evidence` or `reports` bucket migration, so do not treat these buckets as provisioned.
 CyberGuard requires two storage buckets:
 
 ### 3.1. `evidence` (Private)

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | CyberGuard",
   },
   description:
-    "CyberGuard helps organizations assess their cybersecurity posture, track compliance, manage risks, and generate audit-ready reports — all in one unified platform.",
+    "CyberGuard helps organizations manage cybersecurity assessment templates, sessions, and team workflows. Risk analytics and report generation are planned capabilities.",
   keywords: [
     "cybersecurity compliance",
     "risk assessment",

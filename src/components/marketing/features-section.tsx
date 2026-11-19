@@ -12,37 +12,37 @@ const features = [
   {
     Icon: ClipboardCheck,
     title: "Security Assessments",
-    tag: "Core",
+    tag: "Available",
     description:
-      "Run structured assessments mapped to SOC 2, ISO 27001, NIST CSF, and more. Assign questions to departments, collect evidence, and track completion in real time.",
-    benefits: ["Multi-framework support", "Evidence upload", "Auto-scoring"],
+      "Create assessment templates, organize questions by security domain, assign sessions, save drafts, and track completion progress.",
+    benefits: ["Template and question builder", "Draft and resume workflow", "Session progress tracking"],
     color: "brand",
   },
   {
     Icon: BarChart3,
-    title: "Risk Scoring Engine",
-    tag: "Intelligence",
+    title: "Risk Management",
+    tag: "Roadmap",
     description:
-      "Automatically calculate risk severity using a likelihood × impact matrix. Prioritise threats by business impact and track remediation progress over time.",
-    benefits: ["Dynamic risk matrix", "Trend tracking", "Executive summaries"],
+      "A risk register, likelihood-and-impact scoring, and remediation workflows are planned for a future release.",
+    benefits: ["Planned risk registry", "Planned severity scoring", "Planned remediation tracking"],
     color: "accent",
   },
   {
     Icon: ShieldCheck,
-    title: "Compliance Tracking",
-    tag: "Compliance",
+    title: "Compliance Analytics",
+    tag: "Roadmap",
     description:
-      "Map your security controls to multiple frameworks simultaneously. Get a real-time compliance score and identify which controls need immediate attention.",
-    benefits: ["Gap analysis", "Control mapping", "Readiness dashboards"],
+      "Cross-framework control mapping, calculated compliance scores, and executive readiness analytics are planned capabilities.",
+    benefits: ["Planned control mapping", "Planned compliance scoring", "Planned readiness reports"],
     color: "purple",
   },
   {
     Icon: ScrollText,
-    title: "Audit Logs",
-    tag: "Governance",
+    title: "Activity History",
+    tag: "Available",
     description:
-      "Maintain an immutable, timestamped audit trail of every action across your compliance programme. Built for auditors, regulators, and internal reviews.",
-    benefits: ["Tamper-proof records", "Advanced filters", "Exportable logs"],
+      "Selected organization and assessment actions are recorded and recent activity is visible in the dashboard. A full audit viewer and append-only assurance are not yet available.",
+    benefits: ["Selected activity events", "Recent dashboard activity", "Audit viewer planned"],
     color: "amber",
   },
   {
@@ -50,8 +50,8 @@ const features = [
     title: "Team Management",
     tag: "Organisation",
     description:
-      "Invite team members, assign roles with granular permissions, and organise your workforce into departments. Delegate assessment tasks to the right people.",
-    benefits: ["RBAC permissions", "Department scoping", "Invitation flows"],
+      "Manage organization members, invitations, roles, and departments. Assessment assignment is available; department-scoped permissions require further verification.",
+    benefits: ["Member invitations", "Organization roles", "Department management"],
     color: "rose",
   },
 ];
@@ -78,8 +78,7 @@ export function FeaturesSection() {
             Everything your security team needs
           </h2>
           <p className="text-lg text-slate-400 leading-relaxed">
-            From initial assessment to executive reporting, CyberGuard covers the entire
-            compliance and risk management lifecycle.
+            Start with structured assessments and organization workflows. Risk analytics and report generation are on the roadmap.
           </p>
         </div>
 
